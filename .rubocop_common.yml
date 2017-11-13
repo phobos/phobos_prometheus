@@ -1,0 +1,17 @@
+##############
+# Global rules
+Rails:
+  Enabled: false
+
+Style/SymbolArray:
+  EnforcedStyle: brackets
+
+Metrics/LineLength:
+  Max: 100
+  Exclude:
+   - '*.gemspec'
+
+Metrics/BlockLength:
+  Exclude:
+   - '*.gemspec'
+   - 'spec/**/*.rb'
