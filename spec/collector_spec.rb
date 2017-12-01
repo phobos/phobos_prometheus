@@ -1,7 +1,7 @@
 require 'rack/test'
-require 'prometheus/middleware/collector'
+require 'prometheus/collector'
 
-RSpec.describe Prometheus::Middleware::Collector do
+RSpec.describe Prometheus::Collector do
   include Rack::Test::Methods
 
   let(:registry) do
