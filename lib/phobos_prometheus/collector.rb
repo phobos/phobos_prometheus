@@ -1,43 +1,53 @@
 require 'prometheus/client'
 
 module PhobosPrometheus
+  # Collector class to track listener and producer events from Phobos Instrumentation
+  # Listener events are aggregated per handler
   class Collector
-    attr_reader :registry, :event_total, :event_durations
+    # Buckets in ms for histogram
+    BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze
+
+    attr_reader :registry, :listener_events_total, :listener_events_duration
 
     def initialize(options = {})
       @registry = options[:registry] || Prometheus::Client.registry
       @metrics_prefix = options[:metrics_prefix] || 'phobos_client'
 
-      init_event_metrics
-      subscribe_event_metrics
+      init_consumer_metrics
+      subscribe_consumer_metrics
     end
 
     protected
 
     EVENT_LABEL_BUILDER = proc do |event|
       {
-        topic:    event.payload.topic,
-        group_id: event.payload.group_id,
-        handler:  event.payload.handler
+        topic:    event.payload[:topic],
+        group_id: event.payload[:group_id],
+        handler:  event.payload[:handler]
       }
     end
 
-    def init_event_metrics
-      @event_total = @registry.counter(
-        :"#{@metrics_prefix}_total_events_handled",
-        'The total number of kafka events handled by the Phobos application.',
+    def init_consumer_metrics
+      @listener_events_total = @registry.counter(
+        :"#{@metrics_prefix}_listener_events_total",
+        'The total number of events handled.',
       )
-      @event_durations = @registry.histogram(
-        :"#{@metrics_prefix}_events_handled_duration",
-        'The event consume duration in ms of the Phobos application.',
+      @listener_events_duration = @registry.histogram(
+        :"#{@metrics_prefix}_listener_events_duration",
+        'The duration spent (in ms) consuming events.',
+        {},
+        BUCKETS
       )
     end
 
-    def subscribe_event_metrics
+    def subscribe_consumer_metrics
       Phobos::Instrumentation.subscribe('listener.process_message') do |event|
-        @event_total.increment(EVENT_LABEL_BUILDER.call(event))
-        @event_durations.observe(EVENT_LABEL_BUILDER.call(event), event.duration)
+        @listener_events_total.increment(EVENT_LABEL_BUILDER.call(event))
+        @listener_events_duration.observe(EVENT_LABEL_BUILDER.call(event), event.duration)
       end
+    rescue
+      # TODO: log unexpected exception during request recording
+      nil
     end
   end
 end

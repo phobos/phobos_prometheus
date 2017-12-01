@@ -7,7 +7,7 @@ require 'phobos_prometheus/collector'
 module PhobosPrometheus
   class << self
     def configure(options = {})
-      @collector ||= Collector.new
+      @collector ||= Collector.new(options)
     end
   end
 end
