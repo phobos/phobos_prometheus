@@ -30,7 +30,7 @@ module PhobosPrometheus
     def init_consumer_metrics
       @listener_events_total = @registry.counter(
         :"#{@metrics_prefix}_listener_events_total",
-        'The total number of events handled.',
+        'The total number of events handled.'
       )
       @listener_events_duration = @registry.histogram(
         :"#{@metrics_prefix}_listener_events_duration",

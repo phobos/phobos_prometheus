@@ -1,5 +1,9 @@
 ##############
 # Global rules
+AllCops:
+  Exclude:
+    - db/**/*
+
 Rails:
   Enabled: false
 
@@ -8,10 +12,11 @@ Style/SymbolArray:
 
 Metrics/LineLength:
   Max: 100
-  Exclude:
-   - '*.gemspec'
 
 Metrics/BlockLength:
   Exclude:
    - '*.gemspec'
    - 'spec/**/*.rb'
+
+Documentation:
+  Enabled: false
