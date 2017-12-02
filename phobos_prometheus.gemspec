@@ -10,7 +10,8 @@ Gem::Specification.new do |spec|
   spec.email         = ['mathias.klippinge@gmail.com']
 
   spec.summary       = 'Prometheus collector for Phobos'
-  spec.description   = 'Gathers metrics from Phobos, making it possible for Prometheus server to consume this'
+  spec.description   = 'Gathers metrics from Phobos, making it possible for ' \
+                       'Prometheus server to consume this'
   spec.homepage      = 'https://github.com/klarna/phobos_prometheus'
 
   # Prevent pushing this gem to RubyGems.org. To allow pushes either set the 'allowed_push_host'
