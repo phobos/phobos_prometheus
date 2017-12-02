@@ -9,11 +9,9 @@ module PhobosPrometheus
   class << self
     attr_reader :collector
 
-    # rubocop:disable Style/ClassVars
     def register_subscriber(options = {})
-      @@collector ||= Collector.new(options)
+      @collector ||= Collector.new(options)
       self
     end
-    # rubocop:enable Style/ClassVars
   end
 end
