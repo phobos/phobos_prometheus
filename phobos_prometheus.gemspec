@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency 'phobos'
   spec.add_dependency 'prometheus-client'
+  spec.add_dependency 'sinatra'
 
   spec.add_development_dependency 'bundler', '~> 1.16'
 
