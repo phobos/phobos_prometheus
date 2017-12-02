@@ -39,6 +39,7 @@ module PhobosPrometheus
       )
     end
 
+    # rubocop:disable Lint/RescueWithoutErrorClass
     def subscribe_consumer_metrics
       Phobos::Instrumentation.subscribe('listener.process_message') do |event|
         @listener_events_total.increment(EVENT_LABEL_BUILDER.call(event))
@@ -48,5 +49,6 @@ module PhobosPrometheus
       # TODO: log unexpected exception during request recording
       nil
     end
+    # rubocop:enable Lint/RescueWithoutErrorClass
   end
 end
