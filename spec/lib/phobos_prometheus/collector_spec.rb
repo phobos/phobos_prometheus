@@ -33,7 +33,6 @@ RSpec.describe PhobosPrometheus::Collector do
   end
 
   describe 'consumer events' do
-
     before :each do
       allow(Prometheus::Client).to receive(:registry).and_return(registry)
       subject
@@ -75,9 +74,9 @@ RSpec.describe PhobosPrometheus::Collector do
     end
 
     it 'it swallows the exception' do
-      expect {
+      expect do
         emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
-      }.to_not raise_error
+      end.to_not raise_error
     end
 
     it 'logs to error log' do

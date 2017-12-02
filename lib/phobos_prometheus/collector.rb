@@ -47,17 +47,21 @@ module PhobosPrometheus
           @listener_events_total.increment(EVENT_LABEL_BUILDER.call(event))
           @listener_events_duration.observe(EVENT_LABEL_BUILDER.call(event), event.duration)
         rescue => error
-          Phobos.logger.error(Hash(
-            message: 'PhobosPrometheus: Error occured in metrics handler for subscribed event',
-            event: event,
-            exception_class: error.class.to_s,
-            exception_message: error.message,
-            backtrace: error.backtrace
-          ))
-          nil
+          log_error(error, event)
         end
       end
     end
     # rubocop:enable Lint/RescueWithoutErrorClass
+
+    def log_error(error, event)
+      Phobos.logger.error(Hash(
+                            message: 'PhobosPrometheus: Error occured in metrics handler ' \
+                                     'for subscribed event',
+                            event: event,
+                            exception_class: error.class.to_s,
+                            exception_message: error.message,
+                            backtrace: error.backtrace
+      ))
+    end
   end
 end
