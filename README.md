@@ -20,13 +20,7 @@ Or install it yourself as:
 
 ## Usage
 
-### Phobos CLI
-
-TODO: Add instructions for how to use the Phobos CLI to inject the code into a project.
-
-### Manual
-
-In phobos_boot.rb, add `PhobosPrometheus.configure`
+In phobos_boot.rb, add `PhobosPrometheus.configure` to setup a single point of
 
 In config.ru, mount the metrics endpoint:
 

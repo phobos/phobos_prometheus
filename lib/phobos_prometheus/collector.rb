@@ -1,3 +1,4 @@
+require 'phobos'
 require 'prometheus/client'
 
 module PhobosPrometheus
@@ -42,12 +43,20 @@ module PhobosPrometheus
     # rubocop:disable Lint/RescueWithoutErrorClass
     def subscribe_consumer_metrics
       Phobos::Instrumentation.subscribe('listener.process_message') do |event|
-        @listener_events_total.increment(EVENT_LABEL_BUILDER.call(event))
-        @listener_events_duration.observe(EVENT_LABEL_BUILDER.call(event), event.duration)
+        begin
+          @listener_events_total.increment(EVENT_LABEL_BUILDER.call(event))
+          @listener_events_duration.observe(EVENT_LABEL_BUILDER.call(event), event.duration)
+        rescue => error
+          Phobos.logger.error(Hash(
+            message: 'PhobosPrometheus: Error occured in metrics handler for subscribed event',
+            event: event,
+            exception_class: error.class.to_s,
+            exception_message: error.message,
+            backtrace: error.backtrace
+          ))
+          nil
+        end
       end
-    rescue
-      # TODO: log unexpected exception during request recording
-      nil
     end
     # rubocop:enable Lint/RescueWithoutErrorClass
   end

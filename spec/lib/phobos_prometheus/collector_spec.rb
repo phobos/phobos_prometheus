@@ -33,7 +33,6 @@ RSpec.describe PhobosPrometheus::Collector do
   end
 
   describe 'consumer events' do
-    let(:subject) { described_class.new }
 
     before :each do
       allow(Prometheus::Client).to receive(:registry).and_return(registry)
@@ -62,6 +61,28 @@ RSpec.describe PhobosPrometheus::Collector do
             { 5 => 2.0, 10 => 2.0, 25 => 2.0, 50 => 2.0, 100 => 2.0, 250 => 2.0,
               500 => 2.0, 750 => 2.0, 1500 => 2.0, 3000 => 2.0, 5000 => 2.0 }
         )
+    end
+  end
+
+  context 'when exception occurs' do
+    before :each do
+      Phobos.configure(Hash(logger: Hash(level: :error)))
+      Phobos.silence_log = true
+      Phobos.configure_logger
+      allow(Prometheus::Client).to receive(:registry).and_return(registry)
+      subject
+      allow(subject.listener_events_total).to receive(:increment).and_raise(StandardError, 'Boo')
+    end
+
+    it 'it swallows the exception' do
+      expect {
+        emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
+      }.to_not raise_error
+    end
+
+    it 'logs to error log' do
+      expect(Phobos.logger).to receive(:error).with(Hash)
+      emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
     end
   end
 end
