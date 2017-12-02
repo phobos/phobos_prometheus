@@ -20,9 +20,22 @@ Or install it yourself as:
 
 ## Usage
 
-In your config.ru, add this line
+### Phobos CLI
 
-`use PhobosPrometheus::Middleware::Collector`
+TODO: Add instructions for how to use the Phobos CLI to inject the code into a project.
+
+### Manual
+
+In phobos_boot.rb, add `PhobosPrometheus.configure`
+
+In config.ru, mount the metrics endpoint:
+
+```ruby
+run Rack::URLMap.new(
+    '/metrics' => PhobosPrometheus::Exporter,
+    # ...
+)
+```
 
 ## Development
 
