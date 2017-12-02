@@ -1,2 +1,2 @@
-RSpec.describe PhobosPrometheus::Middleware::Exporter do
+RSpec.describe PhobosPrometheus::Exporter do
 end

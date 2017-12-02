@@ -26,7 +26,7 @@ module PhobosPrometheus
     private
 
     def negotiate(env, formats)
-      parse(env.fetch('HTTP_ACCEPT', '*/*')).each do |content_type, _|
+      parse(env.fetch('HTTP_ACCEPT', '*/*')).each_entry do |content_type, _|
         return formats[content_type] if formats.key?(content_type)
       end
 
@@ -56,7 +56,7 @@ module PhobosPrometheus
       [
         200,
         { 'Content-Type' => format::CONTENT_TYPE },
-        [format.marshal(@registry)],
+        [format.marshal(@registry)]
       ]
     end
 
@@ -66,7 +66,7 @@ module PhobosPrometheus
       [
         406,
         { 'Content-Type' => 'text/plain' },
-        ["Supported media types: #{types.join(', ')}"],
+        ["Supported media types: #{types.join(', ')}"]
       ]
     end
 
