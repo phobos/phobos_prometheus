@@ -1,6 +1,11 @@
 # Phobos Prometheus
 
-A prometheus metrics and collector for any Rack app running Phobos
+A bundled Prometheus collector and exporter of Phobos metrics.
+
+Exporter is a simple Sinatra app which can be mounted in eg a Rack App.
+
+Collector initializes Prometheus metrics and sets up a subscribtion to certain Phobos events to keep
+monitor of your metrics
 
 ## Installation
 
@@ -20,7 +25,7 @@ Or install it yourself as:
 
 ## Usage
 
-In phobos_boot.rb, add `PhobosPrometheus.configure` to setup a single point of
+In phobos_boot.rb, add `PhobosPrometheus.register_subscriber` to setup tracking of Phobos metrics.
 
 In config.ru, mount the metrics endpoint:
 
