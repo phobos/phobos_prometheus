@@ -6,15 +6,14 @@ module PhobosPrometheus
   # Exporter is a Rack application that provides a Prometheus HTTP exposition
   # endpoint.
   class Exporter < Sinatra::Base
-    attr_reader :app, :registry
+    attr_reader :registry
 
     FORMATS  = [Prometheus::Client::Formats::Text].freeze
     FALLBACK = Prometheus::Client::Formats::Text
 
-    def initialize(app = nil)
+    def initialize(options = {})
       super
-      @app = app
-      @registry = Prometheus::Client.registry
+      @registry = options[:registry] || Prometheus::Client.registry
       @acceptable = build_dictionary(FORMATS, FALLBACK)
     end
 
