@@ -1,8 +1,7 @@
 require 'prometheus/client'
 
 module PhobosPrometheus
-  # Collector class to track listener and producer events from Phobos Instrumentation
-  # Listener events are aggregated per handler
+  # Collector class to track events from Phobos Instrumentation
   class Collector
     # Buckets in ms for histogram
     BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze
