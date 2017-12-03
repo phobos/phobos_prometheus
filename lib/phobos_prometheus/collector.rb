@@ -9,12 +9,22 @@ module PhobosPrometheus
 
     attr_reader :registry, :listener_events_total, :listener_events_duration
 
-    def initialize(options = {})
-      @registry = options[:registry] || Prometheus::Client.registry
-      @metrics_prefix = options[:metrics_prefix] || 'phobos_client'
+    # PhobosPrometheus::Collector.register('listener.process_message')
+    # PhobosPrometheus::Collector.register('listener.process_batch')
+    def self.create(instrumentation_label)
+      new(instrumentation_label)
+    end
 
-      init_consumer_metrics
-      subscribe_consumer_metrics
+    def initialize(instrumentation_label)
+      @instrumentation_label = instrumentation_label
+      @prometheus_label = instrumentation_label.sub('.', '_')
+      @display_label = instrumentation_label.split('')
+
+      @registry = Prometheus::Client.registry
+      @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'
+
+      init_metrics
+      subscribe_metrics
     end
 
     protected
@@ -27,25 +37,27 @@ module PhobosPrometheus
       }
     end
 
-    def init_consumer_metrics
+    def init_metrics
       @listener_events_total = @registry.counter(
-        :"#{@metrics_prefix}_listener_events_total",
-        'The total number of events handled.'
+        :"#{@metrics_prefix}_#{@prometheus_label}_total",
+        "The total number of #{@display_label} events handled."
       )
       @listener_events_duration = @registry.histogram(
-        :"#{@metrics_prefix}_listener_events_duration",
-        'The duration spent (in ms) consuming events.',
+        :"#{@metrics_prefix}_#{@prometheus_label}_duration",
+        "The duration spent (in ms) consuming #{@display_label} events.",
         {},
         BUCKETS
       )
     end
 
     # rubocop:disable Lint/RescueWithoutErrorClass
-    def subscribe_consumer_metrics
-      Phobos::Instrumentation.subscribe('listener.process_message') do |event|
+    def subscribe_metrics
+      Phobos::Instrumentation.subscribe(@instrumentation_label) do |event|
         begin
-          @listener_events_total.increment(EVENT_LABEL_BUILDER.call(event))
-          @listener_events_duration.observe(EVENT_LABEL_BUILDER.call(event), event.duration)
+          @listener_events_total
+            .increment(Collector::EVENT_LABEL_BUILDER.call(event))
+          @listener_events_duration
+            .observe(Collector::EVENT_LABEL_BUILDER.call(event), event.duration)
         rescue => error
           log_error(error, event)
         end
@@ -57,6 +69,7 @@ module PhobosPrometheus
       Phobos.logger.error(Hash(
                             message: 'PhobosPrometheus: Error occured in metrics handler ' \
                                      'for subscribed event',
+                            instrumentation_label: @instrumentation_label,
                             event: event,
                             exception_class: error.class.to_s,
                             exception_message: error.message,
