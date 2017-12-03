@@ -1,5 +1,8 @@
-RSpec.describe PhobosPrometheus::Collector do
+RSpec.describe PhobosPrometheus::Collector, :configured do
   include Phobos::Instrumentation
+
+  let(:instrumentation_label) { 'listener.process_message' }
+  let(:subject) { described_class.create(instrumentation_label) }
 
   let(:registry) do
     Prometheus::Client::Registry.new
@@ -17,13 +20,13 @@ RSpec.describe PhobosPrometheus::Collector do
 
   def emit_event(group_id:, topic:, handler:)
     instrument(
-      'listener.process_message',
+      instrumentation_label,
       process_message_metadata.merge(group_id: group_id, topic: topic, handler: handler)
     )
   end
 
   def emit_sample_events
-    buckets = described_class::BUCKETS.map { |v| v / 1000.0 }[0..3]
+    buckets = PhobosPrometheus::Collector::BUCKETS.map { |v| v / 1000.0 }[0..3]
     values = [0, 0, 0, 0].zip(buckets).flatten
     allow(Time).to receive(:now).and_return(*values)
     emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
