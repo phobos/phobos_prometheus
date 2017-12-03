@@ -4,13 +4,11 @@ require 'prometheus/client'
 module PhobosPrometheus
   # Collector class to track events from Phobos Instrumentation
   class Collector
+    attr_reader :registry, :listener_events_total, :listener_events_duration
+
     # Buckets in ms for histogram
     BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze
 
-    attr_reader :registry, :listener_events_total, :listener_events_duration
-
-    # PhobosPrometheus::Collector.register('listener.process_message')
-    # PhobosPrometheus::Collector.register('listener.process_batch')
     def self.create(instrumentation_label)
       new(instrumentation_label)
     end
