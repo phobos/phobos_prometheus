@@ -7,8 +7,10 @@ RSpec.describe PhobosPrometheus do
 
   describe '.subscribe', :configured do
     it 'creates a collector object' do
-      expect(PhobosPrometheus::Collector).to receive(:create).with('listener.process_message').ordered
-      expect(PhobosPrometheus::Collector).to receive(:create).with('listener.process_batch').ordered
+      expect(PhobosPrometheus::Collector)
+        .to receive(:create).with('listener.process_message').ordered
+      expect(PhobosPrometheus::Collector)
+        .to receive(:create).with('listener.process_batch').ordered
       PhobosPrometheus.subscribe
     end
 

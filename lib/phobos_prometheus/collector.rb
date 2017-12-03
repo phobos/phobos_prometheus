@@ -1,6 +1,3 @@
-require 'phobos'
-require 'prometheus/client'
-
 module PhobosPrometheus
   # Collector class to track events from Phobos Instrumentation
   class Collector

@@ -1,7 +1,3 @@
-require 'sinatra/base'
-require 'prometheus/client'
-require 'prometheus/client/formats/text'
-
 module PhobosPrometheus
   # Exporter is a Rack application that provides a Prometheus HTTP exposition
   # endpoint.

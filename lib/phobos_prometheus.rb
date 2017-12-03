@@ -1,8 +1,10 @@
 require 'ostruct'
 require 'yaml'
 
-require 'phobos/deep_struct'
-require 'phobos/instrumentation'
+require 'phobos'
+require 'prometheus/client'
+require 'prometheus/client/formats/text'
+require 'sinatra/base'
 
 require 'phobos_prometheus/version'
 require 'phobos_prometheus/collector'
