@@ -13,6 +13,8 @@ RSpec.configure do |config|
   end
 
   config.around(:each, :configured) do |example|
+    Phobos.silence_log = true
+    Phobos.configure(Hash(logger: { stdout_json: true }))
     PhobosPrometheus.configure('spec/fixtures/phobos_prometheus.yml')
     example.run
     PhobosPrometheus.instance_variable_set(:@config, nil)
