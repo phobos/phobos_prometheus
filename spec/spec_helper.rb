@@ -12,6 +12,9 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
-  config.before(:each, :configured) { PhobosPrometheus.configure('spec/fixtures/phobos_prometheus.yml') }
-  config.after(:each, :configured) { PhobosPrometheus.instance_variable_set(:@config, nil) }
+  config.around(:each, :configured) do |example|
+    PhobosPrometheus.configure('spec/fixtures/phobos_prometheus.yml')
+    example.run
+    PhobosPrometheus.instance_variable_set(:@config, nil)
+  end
 end
