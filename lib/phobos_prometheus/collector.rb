@@ -18,7 +18,6 @@ module PhobosPrometheus
     def initialize(instrumentation_label)
       @instrumentation_label = instrumentation_label
       @prometheus_label = instrumentation_label.sub('.', '_')
-      @display_label = instrumentation_label.split('')
 
       @registry = Prometheus::Client.registry
       @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'
@@ -40,11 +39,11 @@ module PhobosPrometheus
     def init_metrics
       @listener_events_total = @registry.counter(
         :"#{@metrics_prefix}_#{@prometheus_label}_total",
-        "The total number of #{@display_label} events handled."
+        "The total number of #{@instrumentation_label} events handled."
       )
       @listener_events_duration = @registry.histogram(
         :"#{@metrics_prefix}_#{@prometheus_label}_duration",
-        "The duration spent (in ms) consuming #{@display_label} events.",
+        "The duration spent (in ms) consuming #{@instrumentation_label} events.",
         {},
         BUCKETS
       )
