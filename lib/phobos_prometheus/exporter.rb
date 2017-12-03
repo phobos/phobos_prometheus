@@ -7,9 +7,9 @@ module PhobosPrometheus
     FORMATS  = [Prometheus::Client::Formats::Text].freeze
     FALLBACK = Prometheus::Client::Formats::Text
 
-    def initialize(options = {})
+    def initialize
       super
-      @registry = options[:registry] || Prometheus::Client.registry
+      @registry = Prometheus::Client.registry
       @acceptable = build_dictionary(FORMATS, FALLBACK)
     end
 
