@@ -25,9 +25,22 @@ Or install it yourself as:
 
 ## Usage
 
-In phobos_boot.rb, add `PhobosPrometheus.register_subscriber` to setup tracking of Phobos metrics.
+Step 1: configure the library by calling `PhobosPrometheus.configure` with the path of your
+configuration file or with configuration settings hash.
 
-In config.ru, mount the metrics endpoint:
+```ruby
+PhobosPrometheus.configure('config/phobos_prometheus.yml')
+```
+
+or
+
+```ruby
+PhobosPrometheus.configure(metrics_prefix: 'my_consumer_app')
+```
+
+Step 2: In phobos_boot.rb, add `PhobosPrometheus.subscribe` to setup tracking of Phobos metrics.
+
+Step 3: In config.ru, mount the metrics endpoint:
 
 ```ruby
 run Rack::URLMap.new(
