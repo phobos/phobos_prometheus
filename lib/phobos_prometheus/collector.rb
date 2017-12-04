@@ -11,13 +11,12 @@ module PhobosPrometheus
     end
 
     def initialize(instrumentation_label)
+      @listener_events_total = @listener_events_duration = nil
       @instrumentation_label = instrumentation_label
-      @prometheus_label = instrumentation_label.sub('.', '_')
-
       @registry = Prometheus::Client.registry
       @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'
 
-      init_metrics
+      init_metrics(instrumentation_label.sub('.', '_'))
       subscribe_metrics
     end
 
@@ -31,44 +30,55 @@ module PhobosPrometheus
       }
     end
 
-    def init_metrics
+    def init_metrics(prometheus_label)
       @listener_events_total = @registry.counter(
-        :"#{@metrics_prefix}_#{@prometheus_label}_total",
+        :"#{@metrics_prefix}_#{prometheus_label}_total",
         "The total number of #{@instrumentation_label} events handled."
       )
       @listener_events_duration = @registry.histogram(
-        :"#{@metrics_prefix}_#{@prometheus_label}_duration",
+        :"#{@metrics_prefix}_#{prometheus_label}_duration",
         "The duration spent (in ms) consuming #{@instrumentation_label} events.",
         {},
         BUCKETS
       )
     end
 
-    # rubocop:disable Lint/RescueWithoutErrorClass
     def subscribe_metrics
       Phobos::Instrumentation.subscribe(@instrumentation_label) do |event|
-        begin
-          @listener_events_total
-            .increment(Collector::EVENT_LABEL_BUILDER.call(event))
-          @listener_events_duration
-            .observe(Collector::EVENT_LABEL_BUILDER.call(event), event.duration)
-        rescue => error
-          log_error(error, event)
-        end
+        update_metrics(event)
       end
     end
-    # rubocop:enable Lint/RescueWithoutErrorClass
 
-    def log_error(error, event)
-      Phobos.logger.error(Hash(
-                            message: 'PhobosPrometheus: Error occured in metrics handler ' \
-                                     'for subscribed event',
-                            instrumentation_label: @instrumentation_label,
-                            event: event,
-                            exception_class: error.class.to_s,
-                            exception_message: error.message,
-                            backtrace: error.backtrace
-      ))
+    # rubocop:disable Lint/RescueWithoutErrorClass
+    def update_metrics(event)
+      event_label = Collector::EVENT_LABEL_BUILDER.call(event)
+      @listener_events_total.increment(event_label)
+      @listener_events_duration.observe(event_label, event.duration)
+    rescue => error
+      ErrorLogger.new(error, event, @instrumentation_label).log
+    end
+    # rubocop:enable Lint/RescueWithoutErrorClass
+  end
+
+  # ErrorLogger logs errors to stdout
+  class ErrorLogger
+    def initialize(error, event, instrumentation_label)
+      @error = error
+      @event = event
+      @instrumentation_label = instrumentation_label
+    end
+
+    def log
+      Phobos.logger.error(
+        Hash(
+          message: 'PhobosPrometheus: Error occured in metrics handler for subscribed event',
+          instrumentation_label: @instrumentation_label,
+          event: @event,
+          exception_class: @error.class.to_s,
+          exception_message: @error.message,
+          backtrace: @error.backtrace
+        )
+      )
     end
   end
 end
