@@ -30,8 +30,9 @@ Or install it yourself as:
 
 ## Usage
 
-Step 1: configure the library by calling `PhobosPrometheus.configure` with the path of your
-configuration file or with configuration settings hash.
+**Step 1:** In phobos_boot.rb, configure the library by calling `PhobosPrometheus.configure` with
+the path of your configuration file or with configuration settings hash. Note that PhobosPrometheus
+expects Phobos.configure to have been run since it is using Phobos.logger
 
 ```ruby
 PhobosPrometheus.configure('config/phobos_prometheus.yml')
@@ -43,9 +44,9 @@ or
 PhobosPrometheus.configure(metrics_prefix: 'my_consumer_app')
 ```
 
-Step 2: In phobos_boot.rb, add `PhobosPrometheus.subscribe` to setup tracking of Phobos metrics.
+**Step 2:** In phobos_boot.rb, add `PhobosPrometheus.subscribe` to setup tracking of Phobos metrics.
 
-Step 3: In config.ru, mount the metrics endpoint:
+**Step 3:** In config.ru, mount the metrics endpoint:
 
 ```ruby
 run Rack::URLMap.new(
