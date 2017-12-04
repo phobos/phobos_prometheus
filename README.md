@@ -1,3 +1,8 @@
+[![Build Status](https://travis-ci.org/phobos/phobos_prometheus.svg?branch=master)](https://travis-ci.org/phobos/phobos_prometheus)
+[![Maintainability](https://api.codeclimate.com/v1/badges/c6dfe9affb0e7cc5a682/maintainability)](https://codeclimate.com/github/phobos/phobos_prometheus/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/c6dfe9affb0e7cc5a682/test_coverage)](https://codeclimate.com/github/phobos/phobos_prometheus/test_coverage)
+[![Chat with us on Discord](https://discordapp.com/api/guilds/379938130326847488/widget.png)](https://discord.gg/rfMUBVD)
+
 # Phobos Prometheus
 
 A bundled Prometheus collector and exporter of Phobos metrics.

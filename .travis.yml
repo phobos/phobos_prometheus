@@ -1,5 +1,20 @@
 sudo: false
 language: ruby
 rvm:
-  - 2.4.0
-before_install: gem install bundler -v 1.16.0
+  - 2.4.1
+
+env:
+  global:
+    - CC_TEST_REPORTER_ID=7f9f912d1c88d636a74d9df3af43093c9e127185ef8e78e43dcd192fad284e17
+
+before_install:
+  - env
+  - gem install bundler -v 1.16.0
+
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter before-build || echo "Skipping CC coverage before-build"; fi
+
+after_script:
+  - if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT || echo "Skipping CC coverage after-build"; fi
