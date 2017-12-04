@@ -8,6 +8,7 @@ require 'sinatra/base'
 
 require 'phobos_prometheus/version'
 require 'phobos_prometheus/collector'
+require 'phobos_prometheus/exporter_helper'
 require 'phobos_prometheus/exporter'
 
 # Prometheus collector for Phobos
