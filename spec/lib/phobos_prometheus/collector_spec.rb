@@ -10,7 +10,7 @@ RSpec.describe PhobosPrometheus::Collector, :configured do
 
   let(:process_message_metadata) do
     {
-      listener_id: 'listener_id',
+      id: 'id',
       key: 'key',
       partition: 'partition',
       offset: 'offset',
@@ -44,14 +44,14 @@ RSpec.describe PhobosPrometheus::Collector, :configured do
     end
 
     it 'tracks total events' do
-      expect(subject.listener_events_total.values)
+      expect(subject.counter.values)
         .to match({ topic: 'topic_1', group_id: 'group_1', handler: 'AppHandlerOne' } => 1.0,
                   { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerOne' } => 1.0,
                   { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerTwo' } => 2.0)
     end
 
     it 'track total duration' do
-      expect(subject.listener_events_duration.values)
+      expect(subject.histogram.values)
         .to match(
           { topic: 'topic_1', group_id: 'group_1', handler: 'AppHandlerOne' } =>
             { 5 => 0.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
@@ -73,7 +73,7 @@ RSpec.describe PhobosPrometheus::Collector, :configured do
       Phobos.configure_logger
       allow(Prometheus::Client).to receive(:registry).and_return(registry)
       subject
-      allow(subject.listener_events_total).to receive(:increment).and_raise(StandardError, 'Boo')
+      allow(subject.counter).to receive(:increment).and_raise(StandardError, 'Boo')
     end
 
     it 'it swallows the exception' do

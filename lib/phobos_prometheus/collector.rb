@@ -1,7 +1,7 @@
 module PhobosPrometheus
   # Collector class to track events from Phobos Instrumentation
   class Collector
-    attr_reader :registry, :listener_events_total, :listener_events_duration
+    attr_reader :registry, :counter, :histogram
 
     # Buckets in ms for histogram
     BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze
@@ -11,7 +11,7 @@ module PhobosPrometheus
     end
 
     def initialize(instrumentation_label)
-      @listener_events_total = @listener_events_duration = nil
+      @counter = @histogram = nil
       @instrumentation_label = instrumentation_label
       @registry = Prometheus::Client.registry
       @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'
@@ -31,11 +31,11 @@ module PhobosPrometheus
     end
 
     def init_metrics(prometheus_label)
-      @listener_events_total = @registry.counter(
+      @counter = @registry.counter(
         :"#{@metrics_prefix}_#{prometheus_label}_total",
         "The total number of #{@instrumentation_label} events handled."
       )
-      @listener_events_duration = @registry.histogram(
+      @histogram = @registry.histogram(
         :"#{@metrics_prefix}_#{prometheus_label}_duration",
         "The duration spent (in ms) consuming #{@instrumentation_label} events.",
         {},
@@ -52,8 +52,8 @@ module PhobosPrometheus
     # rubocop:disable Lint/RescueWithoutErrorClass
     def update_metrics(event)
       event_label = Collector::EVENT_LABEL_BUILDER.call(event)
-      @listener_events_total.increment(event_label)
-      @listener_events_duration.observe(event_label, event.duration)
+      @counter.increment(event_label)
+      @histogram.observe(event_label, event.duration)
     rescue => error
       ErrorLogger.new(error, event, @instrumentation_label).log
     end
