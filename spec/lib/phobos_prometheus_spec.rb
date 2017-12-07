@@ -9,12 +9,18 @@ RSpec.describe PhobosPrometheus do
     it 'creates a collector object as per configuration' do
       expect(PhobosPrometheus::Collector)
         .to receive(:create)
-        .with(instrumentation_label: 'listener.process_message')
+        .with(
+          instrumentation_label: 'listener.process_message',
+          buckets: [5, 10, 25, 50, 100, 250, 500, 750, 1000, 2500, 5000]
+        )
         .ordered
         .and_call_original
       expect(PhobosPrometheus::Collector)
         .to receive(:create)
-        .with(instrumentation_label: 'listener.process_batch')
+        .with(
+          instrumentation_label: 'listener.process_batch',
+          buckets: [100, 250, 500, 750, 1000, 2500, 5000, 10_000, 15_000]
+        )
         .ordered
         .and_call_original
 
