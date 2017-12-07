@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'ostruct'
 require 'yaml'
 
@@ -20,11 +22,9 @@ module PhobosPrometheus
     def subscribe
       config.metrics.each do |metric|
         metric.types.each do |type|
-          register(
-            type: type,
-            instrumentation_label: metric.instrumentation_label,
-            buckets: bucket_config(metric.bucket)
-          )
+          register(type: type,
+                   instrumentation_label: metric.instrumentation_label,
+                   buckets: bucket_config(metric.bucket))
         end
       end
 
@@ -50,9 +50,7 @@ module PhobosPrometheus
     def register(type:, instrumentation_label:, buckets:)
       case type
       when 'counter'
-        CounterCollector.create(
-          instrumentation_label: instrumentation_label
-        )
+        CounterCollector.create(instrumentation_label: instrumentation_label)
       when 'histogram'
         PhobosPrometheus::HistogramCollector.create(
           instrumentation_label: instrumentation_label,

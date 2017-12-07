@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PhobosPrometheus
   # Collector class to track events from Phobos Instrumentation
   class CounterCollector

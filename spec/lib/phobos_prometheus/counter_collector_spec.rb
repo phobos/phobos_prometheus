@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe PhobosPrometheus::CounterCollector, :configured do
   include Phobos::Instrumentation
 

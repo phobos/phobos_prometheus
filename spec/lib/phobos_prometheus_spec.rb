@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe PhobosPrometheus do
   let(:config_path) { 'spec/fixtures/phobos_prometheus.yml' }
 
