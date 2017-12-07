@@ -7,7 +7,8 @@ require 'prometheus/client/formats/text'
 require 'sinatra/base'
 
 require 'phobos_prometheus/version'
-require 'phobos_prometheus/collector'
+require 'phobos_prometheus/histogram_collector'
+require 'phobos_prometheus/counter_collector'
 require 'phobos_prometheus/exporter_helper'
 require 'phobos_prometheus/exporter'
 
@@ -18,11 +19,13 @@ module PhobosPrometheus
 
     def subscribe
       config.metrics.each do |metric|
-        Phobos.logger.info { Hash(message: 'PhobosPrometheus register subscriber', metric: metric) }
-        Collector.create(
-          instrumentation_label: metric.instrumentation_label,
-          buckets: bucket_config(metric.bucket)
-        )
+        metric.types.each do |type|
+          register(
+            type: type,
+            instrumentation_label: metric.instrumentation_label,
+            buckets: bucket_config(metric.bucket)
+          )
+        end
       end
 
       Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
@@ -44,8 +47,22 @@ module PhobosPrometheus
       YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)
     end
 
+    def register(type:, instrumentation_label:, buckets:)
+      case type
+      when 'counter'
+        CounterCollector.create(
+          instrumentation_label: instrumentation_label
+        )
+      when 'histogram'
+        PhobosPrometheus::HistogramCollector.create(
+          instrumentation_label: instrumentation_label,
+          buckets: buckets
+        )
+      end
+    end
+
     def bucket_config(name)
-      config.buckets.find { |b| b.name == name }.buckets
+      config.buckets.find { |b| b.name == name }&.buckets
     end
   end
 end
