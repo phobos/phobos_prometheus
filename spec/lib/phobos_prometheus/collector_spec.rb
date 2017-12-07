@@ -2,7 +2,11 @@ RSpec.describe PhobosPrometheus::Collector, :configured do
   include Phobos::Instrumentation
 
   let(:instrumentation_label) { 'listener.process_message' }
-  let(:subject) { described_class.create(instrumentation_label) }
+  let(:subject) do
+    described_class.create(
+      instrumentation_label: instrumentation_label
+    )
+  end
 
   let(:registry) do
     Prometheus::Client::Registry.new

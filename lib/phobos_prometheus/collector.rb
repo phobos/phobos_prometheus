@@ -6,13 +6,13 @@ module PhobosPrometheus
     # Buckets in ms for histogram
     BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze
 
-    def self.create(instrumentation_label)
-      new(instrumentation_label)
+    def self.create(instrumentation_label:, buckets: BUCKETS)
+      new(instrumentation_label: instrumentation_label, buckets: buckets)
     end
 
-    def initialize(instrumentation_label)
-      @counter = @histogram = nil
+    def initialize(instrumentation_label:, buckets:)
       @instrumentation_label = instrumentation_label
+      @buckets = buckets
       @registry = Prometheus::Client.registry
       @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'
 
@@ -39,7 +39,7 @@ module PhobosPrometheus
         :"#{@metrics_prefix}_#{prometheus_label}_duration",
         "The duration spent (in ms) consuming #{@instrumentation_label} events.",
         {},
-        BUCKETS
+        @buckets
       )
     end
 

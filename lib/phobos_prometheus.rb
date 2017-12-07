@@ -18,7 +18,7 @@ module PhobosPrometheus
 
     def subscribe
       config.metrics.each do |metric|
-        Collector.create(metric.instrumentation_label)
+        Collector.create(instrumentation_label: metric.instrumentation_label)
       end
 
       Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
