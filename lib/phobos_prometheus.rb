@@ -14,11 +14,12 @@ require 'phobos_prometheus/exporter'
 # Prometheus collector for Phobos
 module PhobosPrometheus
   class << self
-    attr_reader :message_collector, :batch_collector, :config
+    attr_reader :config
 
     def subscribe
-      @message_collector ||= Collector.create('listener.process_message')
-      @batch_collector ||= Collector.create('listener.process_batch')
+      config.metrics.each do |metric|
+        Collector.create(metric.instrumentation_label)
+      end
 
       Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
 

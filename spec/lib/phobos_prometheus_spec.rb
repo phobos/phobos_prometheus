@@ -6,18 +6,13 @@ RSpec.describe PhobosPrometheus do
   end
 
   describe '.subscribe', :configured do
-    it 'creates a collector object' do
+    it 'creates a collector object as per configuration' do
       expect(PhobosPrometheus::Collector)
         .to receive(:create).with('listener.process_message').ordered
       expect(PhobosPrometheus::Collector)
         .to receive(:create).with('listener.process_batch').ordered
-      PhobosPrometheus.subscribe
-    end
 
-    it 'memorizes the collector object' do
-      collector = PhobosPrometheus.subscribe.message_collector
-      collector2 = PhobosPrometheus.subscribe.message_collector
-      expect(collector).to eql(collector2)
+      PhobosPrometheus.subscribe
     end
   end
 
