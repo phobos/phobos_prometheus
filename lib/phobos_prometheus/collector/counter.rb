@@ -1,17 +1,18 @@
 # frozen_string_literal: true
 
 module PhobosPrometheus
-  # Collector class to track events from Phobos Instrumentation
   module Collector
+    # Collector class to track counter events
     class Counter
       include Helper
-      attr_reader :registry, :counter
+      attr_reader :counter
 
       def self.create(instrumentation_label:)
         new(instrumentation_label: instrumentation_label)
       end
 
       def initialize(args)
+        @metrics_prefix = @instrumentation_label = @registry = @counter = nil
         setup_collector_module(args)
       end
 

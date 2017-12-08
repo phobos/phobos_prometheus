@@ -31,14 +31,15 @@ RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
     )
   end
 
+  def buckets
+    PhobosPrometheus::Collector::Histogram::BUCKETS.map { |value| value / 1000.0 }[0..3]
+  end
+
   def emit_sample_events
-    buckets = PhobosPrometheus::Collector::Histogram::BUCKETS.map { |v| v / 1000.0 }[0..3]
-    values = [0, 0, 0, 0].zip(buckets).flatten
-    allow(Time).to receive(:now).and_return(*values)
+    allow(Time).to receive(:now).and_return(*[0, 0, 0, 0].zip(buckets).flatten)
     emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
     emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerOne')
-    emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo')
-    emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo')
+    2.times { emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo') }
   end
 
   describe 'consumer events' do

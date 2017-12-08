@@ -13,6 +13,8 @@ module PhobosPrometheus
     # Shared code between collectors.
     # Using module to avoid introducing inheritance
     module Helper
+      attr_reader :registry
+
       def setup_collector_module(instrumentation_label:)
         @instrumentation_label = instrumentation_label
         @registry = Prometheus::Client.registry
