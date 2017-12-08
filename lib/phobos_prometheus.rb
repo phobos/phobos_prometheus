@@ -23,7 +23,7 @@ module PhobosPrometheus
     def subscribe
       config.metrics.each do |metric|
         metric.types.each do |type|
-          metrics << register(
+          metrics << Collector.create(
             type: type, buckets: bucket_config(metric.bucket),
             instrumentation_label: metric.instrumentation_label
           )
@@ -48,18 +48,6 @@ module PhobosPrometheus
       return configuration.to_h if configuration.respond_to?(:to_h)
 
       YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)
-    end
-
-    def register(type:, instrumentation_label:, buckets:)
-      case type
-      when 'counter'
-        Collector::Counter.create(instrumentation_label: instrumentation_label)
-      when 'histogram'
-        Collector::Histogram.create(
-          instrumentation_label: instrumentation_label,
-          buckets: buckets
-        )
-      end
     end
 
     def bucket_config(name)

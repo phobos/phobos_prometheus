@@ -7,8 +7,12 @@ module PhobosPrometheus
       include Helper
       attr_reader :counter
 
-      def self.create(instrumentation_label:)
-        new(instrumentation_label: instrumentation_label)
+      def self.handle?(type)
+        type == 'counter'
+      end
+
+      def self.create(args)
+        new(instrumentation_label: args[:instrumentation_label])
       end
 
       def initialize(args)

@@ -1,7 +1,17 @@
 # frozen_string_literal: true
 
 module PhobosPrometheus
+  # Collector dispatches creation of the desired metric types
   module Collector
+    def self.create(type:, instrumentation_label:, buckets:)
+      [Counter, Histogram]
+        .find { |klass| klass.handle?(type) }
+        .create(
+          instrumentation_label: instrumentation_label,
+          buckets: buckets
+        )
+    end
+
     EVENT_LABEL_BUILDER = proc do |event|
       {
         topic:    event.payload[:topic],

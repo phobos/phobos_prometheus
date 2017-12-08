@@ -7,11 +7,18 @@ module PhobosPrometheus
       include Helper
       attr_reader :histogram
 
+      def self.handle?(type)
+        type == 'histogram'
+      end
+
       # Buckets in ms for histogram
       BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze
 
-      def self.create(instrumentation_label:, buckets: BUCKETS)
-        new(instrumentation_label: instrumentation_label, buckets: buckets)
+      def self.create(args)
+        new(
+          instrumentation_label: args[:instrumentation_label],
+          buckets: args[:buckets] || BUCKETS
+        )
       end
 
       def initialize(instrumentation_label:, buckets:)
