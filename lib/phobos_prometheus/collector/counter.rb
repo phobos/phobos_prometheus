@@ -4,23 +4,22 @@ module PhobosPrometheus
   module Collector
     # Collector class to track counter events
     class Counter
-      TYPE = 'counter'
       include Helper
       attr_reader :counter
 
-      def self.create(args)
-        new(instrumentation_label: args[:instrumentation_label])
+      def self.create(config)
+        new(instrumentation: config[:instrumentation])
       end
 
-      def initialize(args)
-        @metrics_prefix = @instrumentation_label = @registry = @counter = nil
-        setup_collector_module(args)
+      def initialize(instrumentation:)
+        @metrics_prefix = @instrumentation = @registry = @counter = nil
+        setup_collector_module(instrumentation: instrumentation)
       end
 
       def init_metrics(prometheus_label)
         @counter = @registry.counter(
           :"#{@metrics_prefix}_#{prometheus_label}_total",
-          "The total number of #{@instrumentation_label} events handled."
+          "The total number of #{@instrumentation} events handled."
         )
       end
 

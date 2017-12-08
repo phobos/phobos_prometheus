@@ -3,10 +3,10 @@
 RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
   include Phobos::Instrumentation
 
-  let(:instrumentation_label) { 'listener.process_batch' }
+  let(:instrumentation) { 'listener.process_batch' }
   let(:subject) do
     described_class.create(
-      instrumentation_label: instrumentation_label
+      instrumentation: instrumentation
     )
   end
 
@@ -26,7 +26,7 @@ RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
 
   def emit_event(group_id:, topic:, handler:)
     instrument(
-      instrumentation_label,
+      instrumentation,
       process_batch_metadata.merge(group_id: group_id, topic: topic, handler: handler)
     )
   end

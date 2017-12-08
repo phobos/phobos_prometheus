@@ -11,46 +11,31 @@ RSpec.describe PhobosPrometheus do
     it 'creates a collector object as per configuration' do
       expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
-        .with(
-          instrumentation_label: 'listener.process_message',
-          buckets: [5, 10, 25, 50, 100, 250, 500, 750, 1000, 2500, 5000]
-        )
-        .ordered
-        .and_call_original
-
-      expect(PhobosPrometheus::Collector::Histogram)
-        .to receive(:create)
-        .with(
-          instrumentation_label: 'listener.process_message',
-          buckets: [5, 10, 25, 50, 100, 250, 500, 750, 1000, 2500, 5000]
-        )
+        .with(PhobosPrometheus.config.counters[0])
         .ordered
         .and_call_original
 
       expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
-        .with(
-          instrumentation_label: 'listener.process_batch',
-          buckets: [100, 250, 500, 750, 1000, 2500, 5000, 10_000, 15_000]
-        )
-        .ordered
-        .and_call_original
-
-      expect(PhobosPrometheus::Collector::Histogram)
-        .to receive(:create)
-        .with(
-          instrumentation_label: 'listener.process_batch',
-          buckets: [100, 250, 500, 750, 1000, 2500, 5000, 10_000, 15_000]
-        )
+        .with(PhobosPrometheus.config.counters[1])
         .ordered
         .and_call_original
 
       expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
-        .with(
-          instrumentation_label: 'foo.counter_only',
-          buckets: nil
-        )
+        .with(PhobosPrometheus.config.counters[2])
+        .ordered
+        .and_call_original
+
+      expect(PhobosPrometheus::Collector::Histogram)
+        .to receive(:create)
+        .with(PhobosPrometheus.config.histograms[0])
+        .ordered
+        .and_call_original
+
+      expect(PhobosPrometheus::Collector::Histogram)
+        .to receive(:create)
+        .with(PhobosPrometheus.config.histograms[1])
         .ordered
         .and_call_original
 

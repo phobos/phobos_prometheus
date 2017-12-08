@@ -23,8 +23,12 @@ module PhobosPrometheus
     attr_reader :config, :metrics
 
     def subscribe
-      config.metrics.each do |metric|
-        subscribe_metric(metric)
+      config.counters.each do |counter|
+        @metrics << PhobosPrometheus::Collector::Counter.create(counter)
+      end
+
+      config.histograms.each do |histogram|
+        @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
       end
 
       Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
@@ -40,12 +44,6 @@ module PhobosPrometheus
     end
 
     private
-
-    def subscribe_metric(metric)
-      metric.types.each do |type|
-        @metrics << Collector::Builder.new(type, metric).subscribe
-      end
-    end
 
     def fetch_settings(configuration)
       YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)

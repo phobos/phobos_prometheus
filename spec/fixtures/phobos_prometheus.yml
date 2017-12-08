@@ -1,24 +1,19 @@
 metrics_prefix: 'phobos_app'
 
-metrics:
-  - instrumentation_label: listener.process_message
-    types:
-      - counter
-      - histogram
-    bucket_name: message
-  - instrumentation_label: listener.process_batch
-    types:
-      - counter
-      - histogram
-    bucket_name: batch
-  - instrumentation_label: foo.counter_only
-    types:
-      - counter
+counters:
+  - instrumentation: listener.process_message
+  - instrumentation: listener.process_batch
+  - instrumentation: foo.counter_only
 
+histograms:
+  - instrumentation: listener.process_message
+    bucket_name: message
+  - instrumentation: listener.process_batch
+    bucket_name: batch
 
 buckets:
   - name: message
-    buckets:
+    bins:
       - 5
       - 10
       - 25
@@ -31,7 +26,7 @@ buckets:
       - 2500
       - 5000
   - name: batch
-    buckets:
+    bins:
       - 100
       - 250
       - 500
