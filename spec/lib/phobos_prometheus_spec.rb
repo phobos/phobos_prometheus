@@ -75,11 +75,10 @@ RSpec.describe PhobosPrometheus do
     end
 
     context 'when providing hash with configuration settings' do
-      it 'parses it correctly' do
-        PhobosPrometheus.configure(metrics_prefix: 'foo')
-
-        expect(PhobosPrometheus.config).to_not be_nil
-        expect(PhobosPrometheus.config.metrics_prefix).to eq('foo')
+      it 'does not parse it correctly' do
+        expect do
+          PhobosPrometheus.configure(metrics_prefix: 'foo')
+        end.to raise_error TypeError
       end
     end
   end

@@ -56,8 +56,6 @@ module PhobosPrometheus
     end
 
     def fetch_settings(configuration)
-      return configuration.to_h if configuration.respond_to?(:to_h)
-
       YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)
     end
   end
