@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module PhobosPrometheus
-  # Collector dispatches creation of the desired metric types
+  # MetricsSubscriber dispatches creation of the desired metric types
   module Collector
     METRIC_TYPES = [Counter, Histogram].freeze
 
@@ -13,13 +13,24 @@ module PhobosPrometheus
       }
     end
 
-    def self.create(type:, instrumentation_label:, buckets:)
-      METRIC_TYPES
-        .find { |klass| klass.handle?(type) }
-        .create(
-          instrumentation_label: instrumentation_label,
-          buckets: buckets
-        )
+    class Builder
+      def initialize(type, metric)
+        @type = type
+        @instrumentation_label = metric.instrumentation_label
+        @bucket = PhobosPrometheus
+                  .config
+                  .buckets
+                  .find { |bucket| bucket.name == metric.bucket_name }
+      end
+
+      def subscribe
+        METRIC_TYPES
+          .find { |klass| klass.handle?(@type) }
+          .create(
+            instrumentation_label: @instrumentation_label,
+            buckets: @bucket&.buckets
+          )
+      end
     end
   end
 end

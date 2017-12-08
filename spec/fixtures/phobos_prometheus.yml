@@ -5,12 +5,12 @@ metrics:
     types:
       - counter
       - histogram
-    bucket: message
+    bucket_name: message
   - instrumentation_label: listener.process_batch
     types:
       - counter
       - histogram
-    bucket: batch
+    bucket_name: batch
   - instrumentation_label: foo.counter_only
     types:
       - counter

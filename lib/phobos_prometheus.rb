@@ -43,16 +43,8 @@ module PhobosPrometheus
 
     def subscribe_metric(metric)
       metric.types.each do |type|
-        @metrics << Collector.create(
-          type: type,
-          buckets: bucket_config(metric.bucket),
-          instrumentation_label: metric.instrumentation_label
-        )
+        @metrics << Collector::Builder.new(type, metric).subscribe
       end
-    end
-
-    def bucket_config(name)
-      config.buckets.find { |bucket| bucket.name == name }&.buckets
     end
 
     def fetch_settings(configuration)
