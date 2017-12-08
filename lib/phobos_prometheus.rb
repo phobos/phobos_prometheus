@@ -24,12 +24,7 @@ module PhobosPrometheus
 
     def subscribe
       config.metrics.each do |metric|
-        metric.types.each do |type|
-          metrics << Collector.create(
-            type: type, buckets: bucket_config(metric.bucket),
-            instrumentation_label: metric.instrumentation_label
-          )
-        end
+        subscribe_metric(metric)
       end
 
       Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
@@ -46,14 +41,24 @@ module PhobosPrometheus
 
     private
 
-    def fetch_settings(configuration)
-      return configuration.to_h if configuration.respond_to?(:to_h)
-
-      YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)
+    def subscribe_metric(metric)
+      metric.types.each do |type|
+        @metrics << Collector.create(
+          type: type,
+          buckets: bucket_config(metric.bucket),
+          instrumentation_label: metric.instrumentation_label
+        )
+      end
     end
 
     def bucket_config(name)
       config.buckets.find { |bucket| bucket.name == name }&.buckets
+    end
+
+    def fetch_settings(configuration)
+      return configuration.to_h if configuration.respond_to?(:to_h)
+
+      YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)
     end
   end
 end
