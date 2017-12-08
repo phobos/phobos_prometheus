@@ -10,6 +10,23 @@ module PhobosPrometheus
       }
     end
 
+    module Helper
+      def subscribe_metrics
+        Phobos::Instrumentation.subscribe(@instrumentation_label) do |event|
+          safely_update_metrics(event)
+        end
+      end
+
+      # rubocop:disable Lint/RescueWithoutErrorClass
+      def safely_update_metrics(event)
+        event_label = EVENT_LABEL_BUILDER.call(event)
+        update_metrics(event_label, event)
+      rescue => error
+        ErrorLogger.new(error, event, @instrumentation_label).log
+      end
+      # rubocop:enable Lint/RescueWithoutErrorClass
+    end
+
     # ErrorLogger logs errors to stdout
     class ErrorLogger
       def initialize(error, event, instrumentation_label)

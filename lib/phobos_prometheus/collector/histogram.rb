@@ -4,6 +4,7 @@ module PhobosPrometheus
   # Collector class to track events from Phobos Instrumentation
   module Collector
     class Histogram
+      include Helper
       attr_reader :registry, :histogram
 
       # Buckets in ms for histogram
@@ -34,20 +35,9 @@ module PhobosPrometheus
         )
       end
 
-      def subscribe_metrics
-        Phobos::Instrumentation.subscribe(@instrumentation_label) do |event|
-          update_metrics(event)
-        end
-      end
-
-      # rubocop:disable Lint/RescueWithoutErrorClass
-      def update_metrics(event)
-        event_label = EVENT_LABEL_BUILDER.call(event)
+      def update_metrics(event_label, event)
         @histogram.observe(event_label, event.duration)
-      rescue => error
-        ErrorLogger.new(error, event, @instrumentation_label).log
       end
-      # rubocop:enable Lint/RescueWithoutErrorClass
     end
   end
 end
