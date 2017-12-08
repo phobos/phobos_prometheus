@@ -49,6 +49,56 @@ run Rack::URLMap.new(
 )
 ```
 
+## Configuration
+
+There are three major keys to consider: `counters`, `histograms` and `buckets`. You probably also
+want to update `metrics_prefix` to differentiate between different consumer apps.
+
+For a list of possible instrumentation events, see Phobos and PhobosDBCheckpoint.
+
+### Counters
+
+The `counters` section provides a list of instrumentation labels that you want to create counters
+for. For example, in order to count the number of processed events:
+
+```yml
+counters:
+  - instrumentation: listener.process_message
+```
+
+### Histograms
+
+The `histograms` section provides a list of instrumentation labels that you want to create
+histograms for. Histograms are a bit more complex as they require bin sizes, these can be named and
+referenced via `bucket_name`
+
+For example, in order to count the duration of processed events:
+
+```yml
+histograms:
+  - instrumentation: listener.process_message
+    bucket_name: message
+```
+
+The example above assumes you have defined a bucket with name `message`, see below.
+
+### Buckets
+
+The `buckets` section provides a definition of bucket sizes having named labels that you need to
+reference for configuring histograms.
+
+To connect with the bucket example above, we need to create a bucket named `message` e.g:
+
+```yml
+buckets:
+  - name: message
+    bins:
+      - 5
+      - 10
+      - 25
+      # - ...
+```
+
 ## Development
 
 After checking out the repo, run `bundle install` to install dependencies. Then, run `rake spec` to
