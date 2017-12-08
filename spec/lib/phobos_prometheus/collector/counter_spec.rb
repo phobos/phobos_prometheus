@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-RSpec.describe PhobosPrometheus::HistogramCollector, :configured do
+RSpec.describe PhobosPrometheus::Collector::Counter, :configured do
   include Phobos::Instrumentation
 
-  let(:instrumentation_label) { 'listener.process_batch' }
+  let(:instrumentation_label) { 'listener.process_message' }
   let(:subject) do
     described_class.create(
       instrumentation_label: instrumentation_label
@@ -14,7 +14,7 @@ RSpec.describe PhobosPrometheus::HistogramCollector, :configured do
     Prometheus::Client::Registry.new
   end
 
-  let(:process_batch_metadata) do
+  let(:process_message_metadata) do
     {
       id: 'id',
       key: 'key',
@@ -27,12 +27,12 @@ RSpec.describe PhobosPrometheus::HistogramCollector, :configured do
   def emit_event(group_id:, topic:, handler:)
     instrument(
       instrumentation_label,
-      process_batch_metadata.merge(group_id: group_id, topic: topic, handler: handler)
+      process_message_metadata.merge(group_id: group_id, topic: topic, handler: handler)
     )
   end
 
   def emit_sample_events
-    buckets = PhobosPrometheus::HistogramCollector::BUCKETS.map { |v| v / 1000.0 }[0..3]
+    buckets = PhobosPrometheus::Collector::Histogram::BUCKETS.map { |v| v / 1000.0 }[0..3]
     values = [0, 0, 0, 0].zip(buckets).flatten
     allow(Time).to receive(:now).and_return(*values)
     emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
@@ -49,19 +49,11 @@ RSpec.describe PhobosPrometheus::HistogramCollector, :configured do
       emit_sample_events
     end
 
-    it 'track total duration' do
-      expect(subject.histogram.values)
-        .to match(
-          { topic: 'topic_1', group_id: 'group_1', handler: 'AppHandlerOne' } =>
-            { 5 => 1.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
-              500 => 1.0, 750 => 1.0, 1500 => 1.0, 3000 => 1.0, 5000 => 1.0 },
-          { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerOne' } =>
-            { 5 => 0.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
-              500 => 1.0, 750 => 1.0, 1500 => 1.0, 3000 => 1.0, 5000 => 1.0 },
-          { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerTwo' } =>
-            { 5 => 0.0, 10 => 0.0, 25 => 1.0, 50 => 2.0, 100 => 2.0, 250 => 2.0,
-              500 => 2.0, 750 => 2.0, 1500 => 2.0, 3000 => 2.0, 5000 => 2.0 }
-        )
+    it 'tracks total events' do
+      expect(subject.counter.values)
+        .to match({ topic: 'topic_1', group_id: 'group_1', handler: 'AppHandlerOne' } => 1.0,
+                  { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerOne' } => 1.0,
+                  { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerTwo' } => 2.0)
     end
   end
 
@@ -72,7 +64,7 @@ RSpec.describe PhobosPrometheus::HistogramCollector, :configured do
       Phobos.configure_logger
       allow(Prometheus::Client).to receive(:registry).and_return(registry)
       subject
-      allow(subject.histogram).to receive(:observe).and_raise(StandardError, 'Boo')
+      allow(subject.counter).to receive(:increment).and_raise(StandardError, 'Boo')
     end
 
     it 'it swallows the exception' do

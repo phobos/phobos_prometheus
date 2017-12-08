@@ -9,13 +9,13 @@ RSpec.describe PhobosPrometheus do
 
   describe '.subscribe', :configured do
     it 'creates a collector object as per configuration' do
-      expect(PhobosPrometheus::CounterCollector)
+      expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
         .with(instrumentation_label: 'listener.process_message')
         .ordered
         .and_call_original
 
-      expect(PhobosPrometheus::HistogramCollector)
+      expect(PhobosPrometheus::Collector::Histogram)
         .to receive(:create)
         .with(
           instrumentation_label: 'listener.process_message',
@@ -24,13 +24,13 @@ RSpec.describe PhobosPrometheus do
         .ordered
         .and_call_original
 
-      expect(PhobosPrometheus::CounterCollector)
+      expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
         .with(instrumentation_label: 'listener.process_batch')
         .ordered
         .and_call_original
 
-      expect(PhobosPrometheus::HistogramCollector)
+      expect(PhobosPrometheus::Collector::Histogram)
         .to receive(:create)
         .with(
           instrumentation_label: 'listener.process_batch',
@@ -39,7 +39,7 @@ RSpec.describe PhobosPrometheus do
         .ordered
         .and_call_original
 
-      expect(PhobosPrometheus::CounterCollector)
+      expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
         .with(instrumentation_label: 'foo.counter_only')
         .ordered
