@@ -24,8 +24,6 @@ module PhobosPrometheus
         subscribe_metrics
       end
 
-      protected
-
       def init_metrics(prometheus_label)
         @histogram = @registry.histogram(
           :"#{@metrics_prefix}_#{prometheus_label}_duration",

@@ -20,8 +20,6 @@ module PhobosPrometheus
         subscribe_metrics
       end
 
-      protected
-
       def init_metrics(prometheus_label)
         @counter = @registry.counter(
           :"#{@metrics_prefix}_#{prometheus_label}_total",
