@@ -11,6 +11,15 @@ module PhobosPrometheus
     end
 
     module Helper
+      def initialize(instrumentation_label:)
+        @instrumentation_label = instrumentation_label
+        @registry = Prometheus::Client.registry
+        @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'
+
+        init_metrics(instrumentation_label.sub('.', '_'))
+        subscribe_metrics
+      end
+
       def subscribe_metrics
         Phobos::Instrumentation.subscribe(@instrumentation_label) do |event|
           safely_update_metrics(event)
