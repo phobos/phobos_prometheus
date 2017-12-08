@@ -31,17 +31,11 @@ Or install it yourself as:
 ## Usage
 
 **Step 1:** In phobos_boot.rb, configure the library by calling `PhobosPrometheus.configure` with
-the path of your configuration file or with configuration settings hash. Note that PhobosPrometheus
-expects Phobos.configure to have been run since it is using Phobos.logger
+the path of your configuration file. Note that PhobosPrometheus expects Phobos.configure to have
+been run since it is using Phobos.logger
 
 ```ruby
 PhobosPrometheus.configure('config/phobos_prometheus.yml')
-```
-
-or
-
-```ruby
-PhobosPrometheus.configure(metrics_prefix: 'my_consumer_app')
 ```
 
 **Step 2:** In phobos_boot.rb, add `PhobosPrometheus.subscribe` to setup tracking of Phobos metrics.
@@ -53,6 +47,56 @@ run Rack::URLMap.new(
     '/metrics' => PhobosPrometheus::Exporter,
     # ...
 )
+```
+
+## Configuration
+
+There are three major keys to consider: `counters`, `histograms` and `buckets`. You probably also
+want to update `metrics_prefix` to differentiate between different consumer apps.
+
+For a list of possible instrumentation events, see Phobos and PhobosDBCheckpoint.
+
+### Counters
+
+The `counters` section provides a list of instrumentation labels that you want to create counters
+for. For example, in order to count the number of processed events:
+
+```yml
+counters:
+  - instrumentation: listener.process_message
+```
+
+### Histograms
+
+The `histograms` section provides a list of instrumentation labels that you want to create
+histograms for. Histograms are a bit more complex as they require bin sizes, these can be named and
+referenced via `bucket_name`
+
+For example, in order to count the duration of processed events:
+
+```yml
+histograms:
+  - instrumentation: listener.process_message
+    bucket_name: message
+```
+
+The example above assumes you have defined a bucket with name `message`, see below.
+
+### Buckets
+
+The `buckets` section provides a definition of bucket sizes having named labels that you need to
+reference for configuring histograms.
+
+To connect with the bucket example above, we need to create a bucket named `message` e.g:
+
+```yml
+buckets:
+  - name: message
+    bins:
+      - 5
+      - 10
+      - 25
+      # - ...
 ```
 
 ## Development
@@ -68,5 +112,4 @@ will create a git tag for the version, push git commits and tags, and push the `
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at
-https://github.com/phobos/phobos_prometheus.
+Bug reports and pull requests are welcome on GitHub at https://github.com/phobos/phobos_prometheus.

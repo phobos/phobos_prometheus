@@ -1,16 +1,22 @@
-RSpec.describe PhobosPrometheus::Collector, :configured do
+# frozen_string_literal: true
+
+RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
   include Phobos::Instrumentation
 
-  let(:instrumentation_label) { 'listener.process_message' }
-  let(:subject) { described_class.create(instrumentation_label) }
+  let(:instrumentation) { 'listener.process_batch' }
+  let(:subject) do
+    described_class.create(
+      instrumentation: instrumentation
+    )
+  end
 
   let(:registry) do
     Prometheus::Client::Registry.new
   end
 
-  let(:process_message_metadata) do
+  let(:process_batch_metadata) do
     {
-      listener_id: 'listener_id',
+      id: 'id',
       key: 'key',
       partition: 'partition',
       offset: 'offset',
@@ -20,19 +26,20 @@ RSpec.describe PhobosPrometheus::Collector, :configured do
 
   def emit_event(group_id:, topic:, handler:)
     instrument(
-      instrumentation_label,
-      process_message_metadata.merge(group_id: group_id, topic: topic, handler: handler)
+      instrumentation,
+      process_batch_metadata.merge(group_id: group_id, topic: topic, handler: handler)
     )
   end
 
+  def buckets
+    PhobosPrometheus::Collector::Histogram::BUCKETS.map { |value| value / 1000.0 }[0..3]
+  end
+
   def emit_sample_events
-    buckets = PhobosPrometheus::Collector::BUCKETS.map { |v| v / 1000.0 }[0..3]
-    values = [0, 0, 0, 0].zip(buckets).flatten
-    allow(Time).to receive(:now).and_return(*values)
+    allow(Time).to receive(:now).and_return(*[0, 0, 0, 0].zip(buckets).flatten)
     emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
     emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerOne')
-    emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo')
-    emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo')
+    2.times { emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo') }
   end
 
   describe 'consumer events' do
@@ -43,24 +50,17 @@ RSpec.describe PhobosPrometheus::Collector, :configured do
       emit_sample_events
     end
 
-    it 'tracks total events' do
-      expect(subject.listener_events_total.values)
-        .to match({ topic: 'topic_1', group_id: 'group_1', handler: 'AppHandlerOne' } => 1.0,
-                  { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerOne' } => 1.0,
-                  { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerTwo' } => 2.0)
-    end
-
     it 'track total duration' do
-      expect(subject.listener_events_duration.values)
+      expect(subject.histogram.values)
         .to match(
           { topic: 'topic_1', group_id: 'group_1', handler: 'AppHandlerOne' } =>
-            { 5 => 0.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
+            { 5 => 1.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
               500 => 1.0, 750 => 1.0, 1500 => 1.0, 3000 => 1.0, 5000 => 1.0 },
           { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerOne' } =>
-            { 5 => 0.0, 10 => 0.0, 25 => 0.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
+            { 5 => 0.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
               500 => 1.0, 750 => 1.0, 1500 => 1.0, 3000 => 1.0, 5000 => 1.0 },
           { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerTwo' } =>
-            { 5 => 2.0, 10 => 2.0, 25 => 2.0, 50 => 2.0, 100 => 2.0, 250 => 2.0,
+            { 5 => 0.0, 10 => 0.0, 25 => 1.0, 50 => 2.0, 100 => 2.0, 250 => 2.0,
               500 => 2.0, 750 => 2.0, 1500 => 2.0, 3000 => 2.0, 5000 => 2.0 }
         )
     end
@@ -73,7 +73,7 @@ RSpec.describe PhobosPrometheus::Collector, :configured do
       Phobos.configure_logger
       allow(Prometheus::Client).to receive(:registry).and_return(registry)
       subject
-      allow(subject.listener_events_total).to receive(:increment).and_raise(StandardError, 'Boo')
+      allow(subject.histogram).to receive(:observe).and_raise(StandardError, 'Boo')
     end
 
     it 'it swallows the exception' do

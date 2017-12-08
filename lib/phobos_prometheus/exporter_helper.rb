@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module PhobosPrometheus
   # Helper for Exporter
   class ExporterHelper

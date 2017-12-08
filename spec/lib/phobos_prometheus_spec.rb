@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 RSpec.describe PhobosPrometheus do
   let(:config_path) { 'spec/fixtures/phobos_prometheus.yml' }
 
@@ -6,18 +8,38 @@ RSpec.describe PhobosPrometheus do
   end
 
   describe '.subscribe', :configured do
-    it 'creates a collector object' do
-      expect(PhobosPrometheus::Collector)
-        .to receive(:create).with('listener.process_message').ordered
-      expect(PhobosPrometheus::Collector)
-        .to receive(:create).with('listener.process_batch').ordered
-      PhobosPrometheus.subscribe
-    end
+    it 'creates a collector object as per configuration' do
+      expect(PhobosPrometheus::Collector::Counter)
+        .to receive(:create)
+        .with(PhobosPrometheus.config.counters[0])
+        .ordered
+        .and_call_original
 
-    it 'memorizes the collector object' do
-      collector = PhobosPrometheus.subscribe.message_collector
-      collector2 = PhobosPrometheus.subscribe.message_collector
-      expect(collector).to eql(collector2)
+      expect(PhobosPrometheus::Collector::Counter)
+        .to receive(:create)
+        .with(PhobosPrometheus.config.counters[1])
+        .ordered
+        .and_call_original
+
+      expect(PhobosPrometheus::Collector::Counter)
+        .to receive(:create)
+        .with(PhobosPrometheus.config.counters[2])
+        .ordered
+        .and_call_original
+
+      expect(PhobosPrometheus::Collector::Histogram)
+        .to receive(:create)
+        .with(PhobosPrometheus.config.histograms[0])
+        .ordered
+        .and_call_original
+
+      expect(PhobosPrometheus::Collector::Histogram)
+        .to receive(:create)
+        .with(PhobosPrometheus.config.histograms[1])
+        .ordered
+        .and_call_original
+
+      PhobosPrometheus.subscribe
     end
   end
 
@@ -38,11 +60,10 @@ RSpec.describe PhobosPrometheus do
     end
 
     context 'when providing hash with configuration settings' do
-      it 'parses it correctly' do
-        PhobosPrometheus.configure(metrics_prefix: 'foo')
-
-        expect(PhobosPrometheus.config).to_not be_nil
-        expect(PhobosPrometheus.config.metrics_prefix).to eq('foo')
+      it 'does not parse it correctly' do
+        expect do
+          PhobosPrometheus.configure(metrics_prefix: 'foo')
+        end.to raise_error TypeError
       end
     end
   end

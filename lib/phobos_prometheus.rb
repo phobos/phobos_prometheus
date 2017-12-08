@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'ostruct'
 require 'yaml'
 
@@ -7,6 +9,10 @@ require 'prometheus/client/formats/text'
 require 'sinatra/base'
 
 require 'phobos_prometheus/version'
+require 'phobos_prometheus/collector/helper'
+require 'phobos_prometheus/collector/error_logger'
+require 'phobos_prometheus/collector/histogram'
+require 'phobos_prometheus/collector/counter'
 require 'phobos_prometheus/collector'
 require 'phobos_prometheus/exporter_helper'
 require 'phobos_prometheus/exporter'
@@ -14,11 +20,16 @@ require 'phobos_prometheus/exporter'
 # Prometheus collector for Phobos
 module PhobosPrometheus
   class << self
-    attr_reader :message_collector, :batch_collector, :config
+    attr_reader :config, :metrics
 
     def subscribe
-      @message_collector ||= Collector.create('listener.process_message')
-      @batch_collector ||= Collector.create('listener.process_batch')
+      config.counters.each do |counter|
+        @metrics << PhobosPrometheus::Collector::Counter.create(counter)
+      end
+
+      config.histograms.each do |histogram|
+        @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
+      end
 
       Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
 
@@ -26,6 +37,7 @@ module PhobosPrometheus
     end
 
     def configure(configuration)
+      @metrics ||= []
       @config = Phobos::DeepStruct.new(fetch_settings(configuration))
 
       Phobos.logger.info { Hash(message: 'PhobosPrometheus configured', env: ENV['RACK_ENV']) }
@@ -34,8 +46,6 @@ module PhobosPrometheus
     private
 
     def fetch_settings(configuration)
-      return configuration.to_h if configuration.respond_to?(:to_h)
-
       YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)
     end
   end

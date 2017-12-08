@@ -3,6 +3,7 @@
 AllCops:
   Exclude:
     - db/**/*
+  TargetRubyVersion: 2.4
 
 Rails:
   Enabled: false
