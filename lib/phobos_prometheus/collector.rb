@@ -3,14 +3,7 @@
 module PhobosPrometheus
   # Collector dispatches creation of the desired metric types
   module Collector
-    def self.create(type:, instrumentation_label:, buckets:)
-      [Counter, Histogram]
-        .find { |klass| klass.handle?(type) }
-        .create(
-          instrumentation_label: instrumentation_label,
-          buckets: buckets
-        )
-    end
+    METRIC_TYPES = [Counter, Histogram].freeze
 
     EVENT_LABEL_BUILDER = proc do |event|
       {
@@ -20,56 +13,13 @@ module PhobosPrometheus
       }
     end
 
-    # Shared code between collectors.
-    # Using module to avoid introducing inheritance
-    module Helper
-      attr_reader :registry
-
-      def setup_collector_module(instrumentation_label:)
-        @instrumentation_label = instrumentation_label
-        @registry = Prometheus::Client.registry
-        @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'
-
-        init_metrics(instrumentation_label.sub('.', '_'))
-        subscribe_metrics
-      end
-
-      def subscribe_metrics
-        Phobos::Instrumentation.subscribe(@instrumentation_label) do |event|
-          safely_update_metrics(event)
-        end
-      end
-
-      # rubocop:disable Lint/RescueWithoutErrorClass
-      def safely_update_metrics(event)
-        event_label = EVENT_LABEL_BUILDER.call(event)
-        update_metrics(event_label, event)
-      rescue => error
-        ErrorLogger.new(error, event, @instrumentation_label).log
-      end
-      # rubocop:enable Lint/RescueWithoutErrorClass
-    end
-
-    # ErrorLogger logs errors to stdout
-    class ErrorLogger
-      def initialize(error, event, instrumentation_label)
-        @error = error
-        @event = event
-        @instrumentation_label = instrumentation_label
-      end
-
-      def log
-        Phobos.logger.error(
-          Hash(
-            message: 'PhobosPrometheus: Error occured in metrics handler for subscribed event',
-            instrumentation_label: @instrumentation_label,
-            event: @event,
-            exception_class: @error.class.to_s,
-            exception_message: @error.message,
-            backtrace: @error.backtrace
-          )
+    def self.create(type:, instrumentation_label:, buckets:)
+      METRIC_TYPES
+        .find { |klass| klass.handle?(type) }
+        .create(
+          instrumentation_label: instrumentation_label,
+          buckets: buckets
         )
-      end
     end
   end
 end
