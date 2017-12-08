@@ -6,3 +6,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 [Semantic Versioning](http://semver.org/).
 
 ## UNRELEASED
+
+### Changed
+
+* Revamp configuration options #4
+
+## [0.2.0]
+
+* Smaller refactorization
+
+## [0.1.0]
+
+* Initial release
