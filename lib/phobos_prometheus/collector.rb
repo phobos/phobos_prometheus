@@ -10,8 +10,10 @@ module PhobosPrometheus
       }
     end
 
+    # Shared code between collectors.
+    # Using module to avoid introducing inheritance
     module Helper
-      def initialize(instrumentation_label:)
+      def setup_collector_module(instrumentation_label:)
         @instrumentation_label = instrumentation_label
         @registry = Prometheus::Client.registry
         @metrics_prefix = PhobosPrometheus.config.metrics_prefix || 'phobos_client'

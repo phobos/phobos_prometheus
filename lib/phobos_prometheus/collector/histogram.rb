@@ -16,7 +16,7 @@ module PhobosPrometheus
 
       def initialize(instrumentation_label:, buckets:)
         @buckets = buckets
-        super(instrumentation_label: instrumentation_label)
+        setup_collector_module(instrumentation_label: instrumentation_label)
       end
 
       def init_metrics(prometheus_label)

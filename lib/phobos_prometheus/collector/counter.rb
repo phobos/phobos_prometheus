@@ -12,7 +12,7 @@ module PhobosPrometheus
       end
 
       def initialize(args)
-        super(args)
+        setup_collector_module(args)
       end
 
       def init_metrics(prometheus_label)
