@@ -7,6 +7,17 @@ module PhobosPrometheus
     module Helper
       attr_reader :registry
 
+      def self.included(base)
+        base.extend ClassMethods
+      end
+
+      # ClassMethods will be extended upon inclusion
+      module ClassMethods
+        def handle?(type)
+          type == self::TYPE
+        end
+      end
+
       def setup_collector_module(instrumentation_label:)
         @instrumentation_label = instrumentation_label
         @registry = Prometheus::Client.registry

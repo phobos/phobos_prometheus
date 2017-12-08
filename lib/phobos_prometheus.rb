@@ -53,7 +53,7 @@ module PhobosPrometheus
     end
 
     def bucket_config(name)
-      config.buckets.find { |b| b.name == name }&.buckets
+      config.buckets.find { |bucket| bucket.name == name }&.buckets
     end
   end
 end

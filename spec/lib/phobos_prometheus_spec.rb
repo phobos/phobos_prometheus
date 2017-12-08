@@ -29,7 +29,10 @@ RSpec.describe PhobosPrometheus do
 
       expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
-        .with(instrumentation_label: 'listener.process_batch')
+        .with(
+          instrumentation_label: 'listener.process_batch',
+          buckets: [100, 250, 500, 750, 1000, 2500, 5000, 10_000, 15_000]
+        )
         .ordered
         .and_call_original
 
@@ -44,7 +47,10 @@ RSpec.describe PhobosPrometheus do
 
       expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
-        .with(instrumentation_label: 'foo.counter_only')
+        .with(
+          instrumentation_label: 'foo.counter_only',
+          buckets: nil
+        )
         .ordered
         .and_call_original
 

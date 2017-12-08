@@ -4,12 +4,9 @@ module PhobosPrometheus
   module Collector
     # Collector class to track histogram events
     class Histogram
+      TYPE = 'histogram'
       include Helper
       attr_reader :histogram
-
-      def self.handle?(type)
-        type == 'histogram'
-      end
 
       # Buckets in ms for histogram
       BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze

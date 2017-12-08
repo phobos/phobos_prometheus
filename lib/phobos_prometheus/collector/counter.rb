@@ -4,12 +4,9 @@ module PhobosPrometheus
   module Collector
     # Collector class to track counter events
     class Counter
+      TYPE = 'counter'
       include Helper
       attr_reader :counter
-
-      def self.handle?(type)
-        type == 'counter'
-      end
 
       def self.create(args)
         new(instrumentation_label: args[:instrumentation_label])
