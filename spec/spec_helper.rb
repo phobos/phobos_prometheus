@@ -17,11 +17,23 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 
+  config.around(:each, :with_logger) do |example|
+    Phobos.silence_log = true
+    Phobos.configure(Hash(logger: { stdout_json: true }))
+    example.run
+  end
+
+  config.after(:each, :clear_config) do
+    PhobosPrometheus.instance_variable_set(:@config, nil)
+    PhobosPrometheus.instance_variable_set(:@metrics, [])
+  end
+
   config.around(:each, :configured) do |example|
     Phobos.silence_log = true
     Phobos.configure(Hash(logger: { stdout_json: true }))
     PhobosPrometheus.configure('spec/fixtures/phobos_prometheus.yml')
     example.run
     PhobosPrometheus.instance_variable_set(:@config, nil)
+    PhobosPrometheus.instance_variable_set(:@metrics, [])
   end
 end

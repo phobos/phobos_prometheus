@@ -24,11 +24,11 @@ module PhobosPrometheus
     attr_reader :config, :metrics
 
     def subscribe
-      config.counters.each do |counter|
+      config.counters&.each do |counter|
         @metrics << PhobosPrometheus::Collector::Counter.create(counter)
       end
 
-      config.histograms.each do |histogram|
+      config.histograms&.each do |histogram|
         @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
       end
 
