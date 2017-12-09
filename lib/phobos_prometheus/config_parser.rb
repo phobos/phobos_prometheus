@@ -13,6 +13,7 @@ module PhobosPrometheus
     COUNTER_INVALID_KEY = 'Invalid configuration option detected at counter level, ignoring'
     HISTOGRAM_MISSING_REQUIRED_KEY1 = 'Missing required key :instrumentation for histogram'
     HISTOGRAM_MISSING_REQUIRED_KEY2 = 'Missing required key :bucket_name for histogram'
+    HISTOGRAM_INVALID_BUCKET = 'Invalid bucket reference specified for histogram'
     HISTOGRAM_INVALID_KEY = 'Invalid configuration option detected at histogram level, ignoring'
     ROOT_KEYS = [:metrics_prefix, :counters, :histograms, :buckets].freeze
     HISTOGRAM_KEYS = [:instrumentation, :bucket_name].freeze
@@ -71,6 +72,8 @@ module PhobosPrometheus
           raise(InvalidConfigurationError, HISTOGRAM_MISSING_REQUIRED_KEY1)
         instrumentation_key_present?(histogram, :bucket_name) ||
           raise(InvalidConfigurationError, HISTOGRAM_MISSING_REQUIRED_KEY2)
+        bucket_present?(histogram['bucket_name']) ||
+          raise(InvalidConfigurationError, HISTOGRAM_INVALID_BUCKET)
         all_keys_valid?(HISTOGRAM_KEYS, histogram) || log_warn(HISTOGRAM_INVALID_KEY)
       end
     end
@@ -81,6 +84,11 @@ module PhobosPrometheus
 
     def instrumentation_key_present?(metric, required)
       metric.keys.any? { |key| key.to_sym == required }
+    end
+
+    def bucket_present?(name)
+      return true unless name
+      @config.buckets.any? { |key| key.name == name }
     end
   end
 end

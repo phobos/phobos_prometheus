@@ -1,0 +1,11 @@
+histograms:
+  - instrumentation: foo
+    bucket_name: bar
+    invalid_key: ignored_value
+
+buckets:
+  - name: bar
+    bins:
+      - 1
+      - 2
+      - 3

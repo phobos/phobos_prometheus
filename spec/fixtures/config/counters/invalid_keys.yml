@@ -1,5 +1,3 @@
-metrics_prefix: 'phobos_app'
-
 counters:
   - instrumentation: listener.process_message
     invalid_key: ignored_value
