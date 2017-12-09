@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-RSpec.describe PhobosPrometheus::Config do
+RSpec.describe PhobosPrometheus::ConfigParser do
   def expect_log(level, message)
     expect(Phobos.logger)
       .to receive(level)
       .with(Hash(message: message))
   end
 
-  describe '.fetch' do
+  describe '.config' do
     context 'with valid config' do
       let(:path) { './spec/fixtures/phobos_prometheus.yml' }
-      let(:config) { described_class.fetch(path) }
+      let(:config) { described_class.new(path).config }
 
       it 'parses metrics_prefix' do
         expect(config.metrics_prefix).to eq('phobos_app')
@@ -44,14 +44,19 @@ RSpec.describe PhobosPrometheus::Config do
 
     context 'with invalid config', :with_logger, :clear_config do
       describe 'for root' do
-        it 'missing counters and histograms' do
-          expect_log(:warn, PhobosPrometheus::Config::ROOT_MISSING_COLLECTORS)
+        it 'logs warning about missing counters and histograms' do
+          expect_log(:warn, described_class::ROOT_MISSING_COLLECTORS)
           PhobosPrometheus.configure('spec/fixtures/config/root/missing.yml')
           expect { PhobosPrometheus.subscribe }.to_not raise_error
           expect(PhobosPrometheus.metrics).to be_empty
         end
 
-        it 'invalid keys'
+        it 'logs warning about having invalid keys' do
+          expect_log(:warn, described_class::ROOT_INVALID_KEY)
+          PhobosPrometheus.configure('spec/fixtures/config/root/invalid_keys.yml')
+          expect { PhobosPrometheus.subscribe }.to_not raise_error
+          expect(PhobosPrometheus.metrics).to match([PhobosPrometheus::Collector::Counter])
+        end
       end
 
       describe 'for counters' do

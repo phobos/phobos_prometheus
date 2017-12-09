@@ -9,7 +9,8 @@ require 'prometheus/client/formats/text'
 require 'sinatra/base'
 
 require 'phobos_prometheus/version'
-require 'phobos_prometheus/config'
+require 'phobos_prometheus/logger'
+require 'phobos_prometheus/config_parser'
 require 'phobos_prometheus/collector/helper'
 require 'phobos_prometheus/collector/error_logger'
 require 'phobos_prometheus/collector/histogram'
@@ -21,6 +22,7 @@ require 'phobos_prometheus/exporter'
 # Prometheus collector for Phobos
 module PhobosPrometheus
   class << self
+    include Logger
     attr_reader :config, :metrics
 
     def subscribe
@@ -32,16 +34,16 @@ module PhobosPrometheus
         @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
       end
 
-      Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
+      log_info('PhobosPrometheus subscribed') unless @metrics.empty?
 
       self
     end
 
     def configure(path)
       @metrics ||= []
-      @config = Config.fetch(path)
+      @config = ConfigParser.new(path).config
 
-      Phobos.logger.info { Hash(message: 'PhobosPrometheus configured', env: ENV['RACK_ENV']) }
+      log_info('PhobosPrometheus configured')
     end
   end
 end
