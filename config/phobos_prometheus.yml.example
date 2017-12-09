@@ -1,4 +1,4 @@
-metrics_prefix: 'phobos_app'
+metrics_prefix: phobos_app
 
 counters:
   - instrumentation: listener.process_message
