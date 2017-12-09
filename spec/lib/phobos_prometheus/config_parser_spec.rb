@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 RSpec.describe PhobosPrometheus::ConfigParser do
+  let(:registry) { Prometheus::Client::Registry.new }
+  before :each do
+    allow(Prometheus::Client).to receive(:registry).and_return(registry)
+  end
+
   def expect_log(level, message)
     expect(Phobos.logger)
       .to receive(level)
@@ -60,15 +65,25 @@ RSpec.describe PhobosPrometheus::ConfigParser do
       end
 
       describe 'for counters' do
-        it 'missing instrumentation'
-        it 'invalid keys'
+        it 'raises error when missing instrumentation' do
+          expect do
+            PhobosPrometheus.configure('spec/fixtures/config/counters/missing_instrumentation.yml')
+          end.to raise_error PhobosPrometheus::InvalidConfigurationError
+        end
+
+        it 'logs warning about having invalid keys' do
+          expect_log(:warn, described_class::COUNTER_INVALID_KEY)
+          PhobosPrometheus.configure('spec/fixtures/config/counters/invalid_keys.yml')
+          expect { PhobosPrometheus.subscribe }.to_not raise_error
+          expect(PhobosPrometheus.metrics).to match([PhobosPrometheus::Collector::Counter])
+        end
       end
 
       describe 'for histograms' do
-        it 'missing instrumentation'
-        it 'missing bucket_name'
-        it 'invalid bucket_name reference'
-        it 'invalid keys'
+        it 'raises error when missing instrumentation'
+        it 'raises error when missing bucket_name'
+        it 'raises error when having invalid bucket_name reference'
+        it 'logs warning about having invalid keys'
       end
 
       describe 'for buckets' do

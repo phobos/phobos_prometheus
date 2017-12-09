@@ -9,6 +9,7 @@ require 'prometheus/client/formats/text'
 require 'sinatra/base'
 
 require 'phobos_prometheus/version'
+require 'phobos_prometheus/errors'
 require 'phobos_prometheus/logger'
 require 'phobos_prometheus/config_parser'
 require 'phobos_prometheus/collector/helper'
