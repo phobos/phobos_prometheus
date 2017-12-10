@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Changed
 
 * Revamp configuration options #4
+* Validate configuration
 
 ## [0.2.0]
 

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 module PhobosPrometheus
-  # Exporter is a Rack application that provides a Prometheus HTTP exposition
-  # endpoint.
+  # Base error class
   class Error < StandardError; end
+  # Error class for invalid configuration
   class InvalidConfigurationError < Error; end
 end
