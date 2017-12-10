@@ -26,25 +26,36 @@ module PhobosPrometheus
     include Logger
     attr_reader :config, :metrics
 
-    def subscribe
-      config.counters&.each do |counter|
-        @metrics << PhobosPrometheus::Collector::Counter.create(counter)
-      end
+    # Public - configure and validate configuration
+    def configure(path)
+      @metrics ||= []
+      @config = ConfigParser.new(path).config
 
-      config.histograms&.each do |histogram|
-        @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
-      end
+      log_info('PhobosPrometheus configured')
+    end
+
+    # Public - after configured create the prometheus metrics
+    def subscribe
+      subscribe_counters
+      subscribe_histograms
 
       log_info('PhobosPrometheus subscribed') unless @metrics.empty?
 
       self
     end
 
-    def configure(path)
-      @metrics ||= []
-      @config = ConfigParser.new(path).config
+    private
 
-      log_info('PhobosPrometheus configured')
+    def subscribe_counters
+      @config.counters.each do |counter|
+        @metrics << PhobosPrometheus::Collector::Counter.create(counter)
+      end
+    end
+
+    def subscribe_histograms
+      @config.histograms.each do |histogram|
+        @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
+      end
     end
   end
 end

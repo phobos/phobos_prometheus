@@ -1,18 +1,42 @@
 # frozen_string_literal: true
 
 module PhobosPrometheus
+  # Helper for operations not dependent on instance state
+  module Helper
+    def self.read_config(path)
+      Phobos::DeepStruct.new(
+        YAML.safe_load(
+          ERB.new(
+            File.read(File.expand_path(path))
+          ).result
+        )
+      )
+    end
+
+    def self.assert_required_key(metric, required)
+      metric.keys.any? { |key| key.to_sym == required }
+    end
+
+    def self.assert_type(metric, key, type)
+      metric[key.to_s].class == type
+    end
+
+    def self.assert_array_of_type(metric, key, type)
+      metric[key.to_s].all? { |value| value.class == type }
+    end
+  end
   # Config validates and parses configuration yml
   class ConfigParser
     include Logger
-    attr_accessor :config
+    attr_reader :config
 
     ROOT_MISSING_COLLECTORS = 'Histograms and counters are not configured, ' \
                               'metrics will not be recorded'
     ROOT_INVALID_KEY = 'Invalid configuration option detected at root level, ignoring'
-    COUNTER_MISSING_REQUIRED_KEY = 'Missing required key :instrumentation for counter'
+    COUNTER_INSTRUMENTATION_MISSING = 'Missing required key :instrumentation for counter'
     COUNTER_INVALID_KEY = 'Invalid configuration option detected at counter level, ignoring'
-    HISTOGRAM_MISSING_REQUIRED_KEY1 = 'Missing required key :instrumentation for histogram'
-    HISTOGRAM_MISSING_REQUIRED_KEY2 = 'Missing required key :bucket_name for histogram'
+    HISTOGRAM_INSTRUMENTATION_MISSING = 'Missing required key :instrumentation for histogram'
+    HISTOGRAM_BUCKET_NAME_MISSING = 'Missing required key :bucket_name for histogram'
     HISTOGRAM_INVALID_BUCKET = 'Invalid bucket reference specified for histogram'
     HISTOGRAM_INVALID_KEY = 'Invalid configuration option detected at histogram level, ignoring'
     BUCKET_NAME_MISSING = 'Missing required key :name for bucket'
@@ -26,20 +50,11 @@ module PhobosPrometheus
     BUCKET_KEYS = [:name, :bins].freeze
 
     def initialize(path)
-      @config = read_config(path)
+      @config = Helper.read_config(path)
       validate_config
-    end
-
-    def read_config(path)
-      Phobos::DeepStruct.new(
-        YAML.safe_load(
-          ERB.new(
-            File.read(
-              File.expand_path(path)
-            )
-          ).result
-        )
-      )
+      @config.counters = [] unless @config.counters
+      @config.histograms = [] unless @config.histograms
+      @config.freeze
     end
 
     def validate_config
@@ -56,32 +71,51 @@ module PhobosPrometheus
     end
 
     def validate_counters
-      counters = @config.to_h[:counters]
-      counters&.map do |counter|
-        assert_required_key(counter, :instrumentation, COUNTER_MISSING_REQUIRED_KEY)
-        check_invalid_keys(COUNTER_KEYS, counter, COUNTER_INVALID_KEY)
+      counters = @config.to_h[:counters] || []
+      counters.map do |counter|
+        validate_counter(counter)
       end
+    end
+
+    def validate_counter(counter)
+      Helper.assert_required_key(counter, :instrumentation) || \
+        fail_config(COUNTER_INSTRUMENTATION_MISSING)
+      check_invalid_keys(COUNTER_KEYS, counter, COUNTER_INVALID_KEY)
     end
 
     def validate_histograms
-      histograms = @config.to_h[:histograms]
-      histograms&.map do |histogram|
-        assert_required_key(histogram, :instrumentation, HISTOGRAM_MISSING_REQUIRED_KEY1)
-        assert_required_key(histogram, :bucket_name, HISTOGRAM_MISSING_REQUIRED_KEY2)
-        assert_bucket_exists(histogram['bucket_name'], HISTOGRAM_INVALID_BUCKET)
-        check_invalid_keys(HISTOGRAM_KEYS, histogram, HISTOGRAM_INVALID_KEY)
+      histograms = @config.to_h[:histograms] || []
+      histograms.map do |histogram|
+        validate_histogram(histogram)
       end
     end
 
+    def validate_histogram(histogram)
+      Helper.assert_required_key(histogram, :instrumentation) || \
+        fail_config(HISTOGRAM_INSTRUMENTATION_MISSING)
+      Helper.assert_required_key(histogram, :bucket_name) || \
+        fail_config(HISTOGRAM_BUCKET_NAME_MISSING)
+      assert_bucket_exists(histogram['bucket_name']) || fail_config(HISTOGRAM_INVALID_BUCKET)
+      check_invalid_keys(HISTOGRAM_KEYS, histogram, HISTOGRAM_INVALID_KEY)
+    end
+
     def validate_buckets
-      buckets = @config.to_h[:buckets]
-      buckets&.map do |bucket|
-        assert_required_key(bucket, :name, BUCKET_NAME_MISSING)
-        assert_required_key(bucket, :bins, BUCKET_BINS_MISSING)
-        assert_type(bucket, :bins, Array, BUCKET_BINS_NOT_ARRAY)
-        assert_array_of_type(bucket, :bins, Integer, BUCKET_BINS_EMPTY)
-        check_invalid_keys(BUCKET_KEYS, bucket, BUCKET_INVALID_KEY)
+      buckets = @config.to_h[:buckets] || []
+      buckets.map do |bucket|
+        validate_bucket(bucket)
       end
+    end
+
+    def validate_bucket(bucket)
+      Helper.assert_required_key(bucket, :name) || fail_config(BUCKET_NAME_MISSING)
+      Helper.assert_required_key(bucket, :bins) || fail_config(BUCKET_BINS_MISSING)
+      Helper.assert_type(bucket, :bins, Array) || fail_config(BUCKET_BINS_NOT_ARRAY)
+      Helper.assert_array_of_type(bucket, :bins, Integer) || fail_config(BUCKET_BINS_EMPTY)
+      check_invalid_keys(BUCKET_KEYS, bucket, BUCKET_INVALID_KEY)
+    end
+
+    def fail_config(message)
+      raise(InvalidConfigurationError, message)
     end
 
     def assert_required_root_keys
@@ -94,24 +128,8 @@ module PhobosPrometheus
         log_warn(msg)
     end
 
-    def assert_required_key(metric, required, msg)
-      metric.keys.any? { |key| key.to_sym == required } || \
-        raise(InvalidConfigurationError, msg)
-    end
-
-    def assert_bucket_exists(name, msg)
-      @config.buckets.any? { |key| key.name == name } || \
-        raise(InvalidConfigurationError, msg)
-    end
-
-    def assert_type(metric, key, type, msg)
-      metric[key.to_s].class == type || \
-        raise(InvalidConfigurationError, msg)
-    end
-
-    def assert_array_of_type(metric, key, type, msg)
-      metric[key.to_s].all? { |value| value.class == type } || \
-        raise(InvalidConfigurationError, msg)
+    def assert_bucket_exists(name)
+      @config.buckets.any? { |key| key.name == name }
     end
   end
 end

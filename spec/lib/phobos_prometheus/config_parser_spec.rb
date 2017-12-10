@@ -70,7 +70,7 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             PhobosPrometheus.configure('spec/fixtures/config/counters/missing_instrumentation.yml')
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::COUNTER_MISSING_REQUIRED_KEY
+            PhobosPrometheus::ConfigParser::COUNTER_INSTRUMENTATION_MISSING
           )
         end
 
@@ -90,7 +90,7 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             )
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::HISTOGRAM_MISSING_REQUIRED_KEY1
+            PhobosPrometheus::ConfigParser::HISTOGRAM_INSTRUMENTATION_MISSING
           )
         end
 
@@ -99,7 +99,7 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             PhobosPrometheus.configure('spec/fixtures/config/histograms/missing_bucket_name.yml')
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::HISTOGRAM_MISSING_REQUIRED_KEY2
+            PhobosPrometheus::ConfigParser::HISTOGRAM_BUCKET_NAME_MISSING
           )
         end
 
