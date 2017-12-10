@@ -1,0 +1,14 @@
+histograms:
+  - instrumentation: foo
+    bucket_name: bar
+
+buckets:
+  - name: bar
+    bins:
+      - 1
+      - 3
+      - 7
+  - bins:
+      - 1
+      - 2
+      - 3

@@ -123,9 +123,56 @@ RSpec.describe PhobosPrometheus::ConfigParser do
       end
 
       describe 'for buckets' do
-        it 'invalid keys'
-        it 'missing bins'
-        it 'missing name'
+        it 'raises error when missing name' do
+          expect do
+            PhobosPrometheus.configure(
+              'spec/fixtures/config/buckets/missing_name.yml'
+            )
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::BUCKET_NAME_MISSING
+          )
+        end
+
+        it 'raises error when missing bins' do
+          expect do
+            PhobosPrometheus.configure(
+              'spec/fixtures/config/buckets/missing_bins.yml'
+            )
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::BUCKET_BINS_MISSING
+          )
+        end
+
+        it 'raises error when bins are wrong type' do
+          expect do
+            PhobosPrometheus.configure(
+              'spec/fixtures/config/buckets/bins_wrong_type.yml'
+            )
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::BUCKET_BINS_NOT_ARRAY
+          )
+        end
+
+        it 'raises error when bins are empty' do
+          expect do
+            PhobosPrometheus.configure(
+              'spec/fixtures/config/buckets/bins_empty.yml'
+            )
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::BUCKET_BINS_EMPTY
+          )
+        end
+
+        it 'logs warning about having invalid keys' do
+          expect_log(:warn, described_class::BUCKET_INVALID_KEY)
+          PhobosPrometheus.configure('spec/fixtures/config/buckets/invalid_keys.yml')
+          expect { PhobosPrometheus.subscribe }.to_not raise_error
+          expect(PhobosPrometheus.metrics).to match([PhobosPrometheus::Collector::Histogram])
+        end
       end
     end
   end
