@@ -68,7 +68,10 @@ RSpec.describe PhobosPrometheus::ConfigParser do
         it 'raises error when missing instrumentation' do
           expect do
             PhobosPrometheus.configure('spec/fixtures/config/counters/missing_instrumentation.yml')
-          end.to raise_error(PhobosPrometheus::InvalidConfigurationError, PhobosPrometheus::ConfigParser::COUNTER_MISSING_REQUIRED_KEY)
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::COUNTER_MISSING_REQUIRED_KEY
+          )
         end
 
         it 'logs warning about having invalid keys' do
@@ -82,20 +85,33 @@ RSpec.describe PhobosPrometheus::ConfigParser do
       describe 'for histograms' do
         it 'raises error when missing instrumentation' do
           expect do
-            PhobosPrometheus.configure('spec/fixtures/config/histograms/missing_instrumentation.yml')
-          end.to raise_error(PhobosPrometheus::InvalidConfigurationError, PhobosPrometheus::ConfigParser::HISTOGRAM_MISSING_REQUIRED_KEY1)
+            PhobosPrometheus.configure(
+              'spec/fixtures/config/histograms/missing_instrumentation.yml'
+            )
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::HISTOGRAM_MISSING_REQUIRED_KEY1
+          )
         end
 
-        it 'raises error when missing bucket_name'  do
+        it 'raises error when missing bucket_name' do
           expect do
             PhobosPrometheus.configure('spec/fixtures/config/histograms/missing_bucket_name.yml')
-          end.to raise_error(PhobosPrometheus::InvalidConfigurationError, PhobosPrometheus::ConfigParser::HISTOGRAM_MISSING_REQUIRED_KEY2)
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::HISTOGRAM_MISSING_REQUIRED_KEY2
+          )
         end
 
         it 'raises error when having invalid bucket_name reference' do
           expect do
-            PhobosPrometheus.configure('spec/fixtures/config/histograms/missing_valid_bucket_reference.yml')
-          end.to raise_error(PhobosPrometheus::InvalidConfigurationError, PhobosPrometheus::ConfigParser::HISTOGRAM_INVALID_BUCKET)
+            PhobosPrometheus.configure(
+              'spec/fixtures/config/histograms/missing_valid_bucket_reference.yml'
+            )
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::ConfigParser::HISTOGRAM_INVALID_BUCKET
+          )
         end
 
         it 'logs warning about having invalid keys' do

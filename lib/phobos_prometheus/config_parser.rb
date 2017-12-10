@@ -44,51 +44,42 @@ module PhobosPrometheus
     end
 
     def validate_root
-      required_root_keys_present? || log_warn(ROOT_MISSING_COLLECTORS)
-      all_root_keys_valid? || log_warn(ROOT_INVALID_KEY)
-    end
-
-    def required_root_keys_present?
-      @config.counters || @config.histograms
-    end
-
-    def all_root_keys_valid?
-      @config.to_h.keys.all? { |key| ROOT_KEYS.include?(key.to_sym) }
+      assert_required_root_keys
+      check_invalid_keys(ROOT_KEYS, @config.to_h, ROOT_INVALID_KEY)
     end
 
     def validate_counters
       counters = @config.to_h[:counters]
       counters&.map do |counter|
-        instrumentation_key_present?(counter, :instrumentation) ||
-          raise(InvalidConfigurationError, COUNTER_MISSING_REQUIRED_KEY)
-        all_keys_valid?(COUNTER_KEYS, counter) || log_warn(COUNTER_INVALID_KEY)
+        assert_required_key(counter, :instrumentation, COUNTER_MISSING_REQUIRED_KEY)
+        check_invalid_keys(COUNTER_KEYS, counter, COUNTER_INVALID_KEY)
       end
     end
 
     def validate_histograms
       histograms = @config.to_h[:histograms]
       histograms&.map do |histogram|
-        instrumentation_key_present?(histogram, :instrumentation) ||
-          raise(InvalidConfigurationError, HISTOGRAM_MISSING_REQUIRED_KEY1)
-        instrumentation_key_present?(histogram, :bucket_name) ||
-          raise(InvalidConfigurationError, HISTOGRAM_MISSING_REQUIRED_KEY2)
-        bucket_present?(histogram['bucket_name']) ||
-          raise(InvalidConfigurationError, HISTOGRAM_INVALID_BUCKET)
-        all_keys_valid?(HISTOGRAM_KEYS, histogram) || log_warn(HISTOGRAM_INVALID_KEY)
+        assert_required_key(histogram, :instrumentation, HISTOGRAM_MISSING_REQUIRED_KEY1)
+        assert_required_key(histogram, :bucket_name, HISTOGRAM_MISSING_REQUIRED_KEY2)
+        assert_bucket_exists(histogram['bucket_name'], HISTOGRAM_INVALID_BUCKET)
+        check_invalid_keys(HISTOGRAM_KEYS, histogram, HISTOGRAM_INVALID_KEY)
       end
     end
 
-    def all_keys_valid?(keys, metric)
-      metric.keys.all? { |key| keys.include?(key.to_sym) }
+    def assert_required_root_keys
+      @config.counters || @config.histograms || log_warn(ROOT_MISSING_COLLECTORS)
     end
 
-    def instrumentation_key_present?(metric, required)
-      metric.keys.any? { |key| key.to_sym == required }
+    def check_invalid_keys(keys, metric, msg)
+      metric.keys.all? { |key| keys.include?(key.to_sym) } || log_warn(msg)
     end
 
-    def bucket_present?(name)
-      return true unless name
-      @config.buckets.any? { |key| key.name == name }
+    def assert_required_key(metric, required, msg)
+      metric.keys.any? { |key| key.to_sym == required } || raise(InvalidConfigurationError, msg)
+    end
+
+    def assert_bucket_exists(name, msg)
+      @config.buckets.any? { |key| key.name == name } || raise(InvalidConfigurationError, msg)
     end
   end
 end
