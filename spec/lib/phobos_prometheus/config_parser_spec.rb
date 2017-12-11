@@ -152,7 +152,7 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             )
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::BucketsValidator::BUCKET_BINS_NOT_ARRAY
+            PhobosPrometheus::BucketsValidator::BUCKET_BINS_EMPTY
           )
         end
 

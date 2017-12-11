@@ -66,7 +66,6 @@ module PhobosPrometheus
     include Logger
     BUCKET_NAME_MISSING = 'Missing required key :name for bucket'
     BUCKET_BINS_MISSING = 'Missing required key :bins for bucket'
-    BUCKET_BINS_NOT_ARRAY = 'Bucket config bad, :bins should be an array'
     BUCKET_BINS_EMPTY = 'Bucket config bad, bins are empty'
     BUCKET_INVALID_KEY = 'Invalid configuration option detected at bucket level, ignoring'
     BUCKET_KEYS = [:name, :bins].freeze
@@ -84,7 +83,6 @@ module PhobosPrometheus
     def validate_bucket(bucket)
       Helper.assert_required_key(bucket, :name) || Helper.fail_config(BUCKET_NAME_MISSING)
       Helper.assert_required_key(bucket, :bins) || Helper.fail_config(BUCKET_BINS_MISSING)
-      Helper.assert_type(bucket, :bins, Array) || Helper.fail_config(BUCKET_BINS_NOT_ARRAY)
       Helper.assert_array_of_type(bucket, :bins, Integer) || Helper.fail_config(BUCKET_BINS_EMPTY)
       Helper.check_invalid_keys(BUCKET_KEYS, bucket) || \
         log_warn(BUCKET_INVALID_KEY)
@@ -107,12 +105,10 @@ module PhobosPrometheus
       metric.keys.any? { |key| key.to_sym == required }
     end
 
-    def self.assert_type(metric, key, type)
-      metric[key.to_s].class == type
-    end
-
     def self.assert_array_of_type(metric, key, type)
-      metric[key.to_s].all? { |value| value.class == type }
+      ary = metric[key.to_s]
+      ary.is_a?(Array) && \
+        ary.all? { |value| value.class == type }
     end
 
     def self.fail_config(message)
