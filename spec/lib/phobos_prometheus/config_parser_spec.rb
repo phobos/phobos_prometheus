@@ -70,12 +70,12 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             PhobosPrometheus.configure('spec/fixtures/config/counters/missing_instrumentation.yml')
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::COUNTER_INSTRUMENTATION_MISSING
+            PhobosPrometheus::CountersValidator::COUNTER_INSTRUMENTATION_MISSING
           )
         end
 
         it 'logs warning about having invalid keys' do
-          expect_log(:warn, described_class::COUNTER_INVALID_KEY)
+          expect_log(:warn, PhobosPrometheus::CountersValidator::COUNTER_INVALID_KEY)
           PhobosPrometheus.configure('spec/fixtures/config/counters/invalid_keys.yml')
           expect { PhobosPrometheus.subscribe }.to_not raise_error
           expect(PhobosPrometheus.metrics).to match([PhobosPrometheus::Collector::Counter])
