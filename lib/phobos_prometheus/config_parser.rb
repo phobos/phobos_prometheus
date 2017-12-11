@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module PhobosPrometheus
+  # Validate Counters
   class CountersValidator
     include Logger
     COUNTER_INSTRUMENTATION_MISSING = 'Missing required key :instrumentation for counter'
@@ -8,7 +9,7 @@ module PhobosPrometheus
     COUNTER_KEYS = [:instrumentation].freeze
 
     def initialize(counters)
-      @counters = counters || []
+      @counters = counters
     end
 
     def validate
@@ -29,6 +30,7 @@ module PhobosPrometheus
     end
   end
 
+  # Validate Histograms
   class HistogramsValidator
     include Logger
     HISTOGRAM_INSTRUMENTATION_MISSING = 'Missing required key :instrumentation for histogram'
@@ -38,8 +40,8 @@ module PhobosPrometheus
     HISTOGRAM_KEYS = [:instrumentation, :bucket_name].freeze
 
     def initialize(histograms, buckets)
-      @histograms = histograms || []
-      @buckets = buckets || []
+      @histograms = histograms
+      @buckets = buckets
     end
 
     def validate
@@ -60,6 +62,40 @@ module PhobosPrometheus
 
     def assert_bucket_exists(name)
       @buckets.any? { |key| key.name == name }
+    end
+
+    def check_invalid_keys(keys, metric)
+      metric.keys.all? { |key| keys.include?(key.to_sym) }
+    end
+  end
+
+  # Validate buckets
+  class BucketsValidator
+    include Logger
+    BUCKET_NAME_MISSING = 'Missing required key :name for bucket'
+    BUCKET_BINS_MISSING = 'Missing required key :bins for bucket'
+    BUCKET_BINS_NOT_ARRAY = 'Bucket config bad, :bins should be an array'
+    BUCKET_BINS_EMPTY = 'Bucket config bad, bins are empty'
+    BUCKET_INVALID_KEY = 'Invalid configuration option detected at bucket level, ignoring'
+    BUCKET_KEYS = [:name, :bins].freeze
+
+    def initialize(buckets)
+      @buckets = buckets
+    end
+
+    def validate
+      @buckets.map do |bucket|
+        validate_bucket(bucket)
+      end
+    end
+
+    def validate_bucket(bucket)
+      Helper.assert_required_key(bucket, :name) || Helper.fail_config(BUCKET_NAME_MISSING)
+      Helper.assert_required_key(bucket, :bins) || Helper.fail_config(BUCKET_BINS_MISSING)
+      Helper.assert_type(bucket, :bins, Array) || Helper.fail_config(BUCKET_BINS_NOT_ARRAY)
+      Helper.assert_array_of_type(bucket, :bins, Integer) || Helper.fail_config(BUCKET_BINS_EMPTY)
+      check_invalid_keys(BUCKET_KEYS, bucket) || \
+        log_warn(BUCKET_INVALID_KEY)
     end
 
     def check_invalid_keys(keys, metric)
@@ -95,6 +131,7 @@ module PhobosPrometheus
       raise(InvalidConfigurationError, message)
     end
   end
+
   # Config validates and parses configuration yml
   class ConfigParser
     include Logger
@@ -103,13 +140,7 @@ module PhobosPrometheus
     ROOT_MISSING_COLLECTORS = 'Histograms and counters are not configured, ' \
                               'metrics will not be recorded'
     ROOT_INVALID_KEY = 'Invalid configuration option detected at root level, ignoring'
-    BUCKET_NAME_MISSING = 'Missing required key :name for bucket'
-    BUCKET_BINS_MISSING = 'Missing required key :bins for bucket'
-    BUCKET_BINS_NOT_ARRAY = 'Bucket config bad, :bins should be an array'
-    BUCKET_BINS_EMPTY = 'Bucket config bad, bins are empty'
-    BUCKET_INVALID_KEY = 'Invalid configuration option detected at bucket level, ignoring'
     ROOT_KEYS = [:metrics_prefix, :counters, :histograms, :buckets].freeze
-    BUCKET_KEYS = [:name, :bins].freeze
 
     def initialize(path)
       @config = Helper.read_config(path)
@@ -133,26 +164,15 @@ module PhobosPrometheus
     end
 
     def validate_counters
-      CountersValidator.new(@config.to_h[:counters]).validate
+      CountersValidator.new(@config.to_h[:counters] || []).validate
     end
 
     def validate_histograms
-      HistogramsValidator.new(@config.to_h[:histograms], @config.buckets).validate
+      HistogramsValidator.new(@config.to_h[:histograms] || [], @config.buckets).validate
     end
 
     def validate_buckets
-      buckets = @config.to_h[:buckets] || []
-      buckets.map do |bucket|
-        validate_bucket(bucket)
-      end
-    end
-
-    def validate_bucket(bucket)
-      Helper.assert_required_key(bucket, :name) || Helper.fail_config(BUCKET_NAME_MISSING)
-      Helper.assert_required_key(bucket, :bins) || Helper.fail_config(BUCKET_BINS_MISSING)
-      Helper.assert_type(bucket, :bins, Array) || Helper.fail_config(BUCKET_BINS_NOT_ARRAY)
-      Helper.assert_array_of_type(bucket, :bins, Integer) || Helper.fail_config(BUCKET_BINS_EMPTY)
-      check_invalid_keys(BUCKET_KEYS, bucket, BUCKET_INVALID_KEY)
+      BucketsValidator.new(@config.to_h[:buckets] || []).validate
     end
 
     def assert_required_root_keys

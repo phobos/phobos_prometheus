@@ -130,7 +130,7 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             )
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::BUCKET_NAME_MISSING
+            PhobosPrometheus::BucketsValidator::BUCKET_NAME_MISSING
           )
         end
 
@@ -141,7 +141,7 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             )
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::BUCKET_BINS_MISSING
+            PhobosPrometheus::BucketsValidator::BUCKET_BINS_MISSING
           )
         end
 
@@ -152,7 +152,7 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             )
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::BUCKET_BINS_NOT_ARRAY
+            PhobosPrometheus::BucketsValidator::BUCKET_BINS_NOT_ARRAY
           )
         end
 
@@ -163,12 +163,12 @@ RSpec.describe PhobosPrometheus::ConfigParser do
             )
           end.to raise_error(
             PhobosPrometheus::InvalidConfigurationError,
-            PhobosPrometheus::ConfigParser::BUCKET_BINS_EMPTY
+            PhobosPrometheus::BucketsValidator::BUCKET_BINS_EMPTY
           )
         end
 
         it 'logs warning about having invalid keys' do
-          expect_log(:warn, described_class::BUCKET_INVALID_KEY)
+          expect_log(:warn, PhobosPrometheus::BucketsValidator::BUCKET_INVALID_KEY)
           PhobosPrometheus.configure('spec/fixtures/config/buckets/invalid_keys.yml')
           expect { PhobosPrometheus.subscribe }.to_not raise_error
           expect(PhobosPrometheus.metrics).to match([PhobosPrometheus::Collector::Histogram])
