@@ -6,7 +6,8 @@ RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
   let(:instrumentation) { 'listener.process_batch' }
   let(:subject) do
     described_class.create(
-      instrumentation: instrumentation
+      instrumentation: instrumentation,
+      bucket_name: 'batch'
     )
   end
 
@@ -31,12 +32,10 @@ RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
     )
   end
 
-  def buckets
-    PhobosPrometheus::Collector::Histogram::BUCKETS.map { |value| value / 1000.0 }[0..3]
-  end
+  BUCKETS = PhobosPrometheus::Collector::Histogram::BUCKETS.map { |value| value / 1000.0 }[0..3]
 
   def emit_sample_events
-    allow(Time).to receive(:now).and_return(*[0, 0, 0, 0].zip(buckets).flatten)
+    allow(Time).to receive(:now).and_return(*[0, 0, 0, 0].zip(BUCKETS).flatten)
     emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
     emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerOne')
     2.times { emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo') }
@@ -54,14 +53,14 @@ RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
       expect(subject.histogram.values)
         .to match(
           { topic: 'topic_1', group_id: 'group_1', handler: 'AppHandlerOne' } =>
-            { 5 => 1.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
-              500 => 1.0, 750 => 1.0, 1500 => 1.0, 3000 => 1.0, 5000 => 1.0 },
+            { 5 => 1.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0, 500 => 1.0,
+              750 => 1.0, 1000 => 1.0, 2500 => 1.0, 5000 => 1.0 },
           { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerOne' } =>
-            { 5 => 0.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0,
-              500 => 1.0, 750 => 1.0, 1500 => 1.0, 3000 => 1.0, 5000 => 1.0 },
+            { 5 => 0.0, 10 => 1.0, 25 => 1.0, 50 => 1.0, 100 => 1.0, 250 => 1.0, 500 => 1.0,
+              750 => 1.0, 1000 => 1.0, 2500 => 1.0, 5000 => 1.0 },
           { topic: 'topic_2', group_id: 'group_2', handler: 'AppHandlerTwo' } =>
-            { 5 => 0.0, 10 => 0.0, 25 => 1.0, 50 => 2.0, 100 => 2.0, 250 => 2.0,
-              500 => 2.0, 750 => 2.0, 1500 => 2.0, 3000 => 2.0, 5000 => 2.0 }
+            { 5 => 0.0, 10 => 0.0, 25 => 1.0, 50 => 2.0, 100 => 2.0, 250 => 2.0, 500 => 2.0,
+              750 => 2.0, 1000 => 2.0, 2500 => 2.0, 5000 => 2.0 }
         )
     end
   end

@@ -4,6 +4,7 @@ module PhobosPrometheus
   module Collector
     # ErrorLogger logs errors to stdout
     class ErrorLogger
+      include Logger
       def initialize(error, event, instrumentation_label)
         @error = error
         @event = event
@@ -11,7 +12,7 @@ module PhobosPrometheus
       end
 
       def log
-        Phobos.logger.error(
+        log_error(
           Hash(
             message: 'PhobosPrometheus: Error occured in metrics handler for subscribed event',
             instrumentation_label: @instrumentation_label,

@@ -9,6 +9,9 @@ require 'prometheus/client/formats/text'
 require 'sinatra/base'
 
 require 'phobos_prometheus/version'
+require 'phobos_prometheus/errors'
+require 'phobos_prometheus/logger'
+require 'phobos_prometheus/config_parser'
 require 'phobos_prometheus/collector/helper'
 require 'phobos_prometheus/collector/error_logger'
 require 'phobos_prometheus/collector/histogram'
@@ -20,33 +23,39 @@ require 'phobos_prometheus/exporter'
 # Prometheus collector for Phobos
 module PhobosPrometheus
   class << self
+    include Logger
     attr_reader :config, :metrics
 
+    # Public - configure and validate configuration
+    def configure(path)
+      @metrics ||= []
+      @config = ConfigParser.new(path).config
+
+      log_info('PhobosPrometheus configured')
+    end
+
+    # Public - after configured create the prometheus metrics
     def subscribe
-      config.counters.each do |counter|
-        @metrics << PhobosPrometheus::Collector::Counter.create(counter)
-      end
+      subscribe_counters
+      subscribe_histograms
 
-      config.histograms.each do |histogram|
-        @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
-      end
-
-      Phobos.logger.info { Hash(message: 'PhobosPrometheus subscribed', env: ENV['RACK_ENV']) }
+      log_info('PhobosPrometheus subscribed') unless @metrics.empty?
 
       self
     end
 
-    def configure(configuration)
-      @metrics ||= []
-      @config = Phobos::DeepStruct.new(fetch_settings(configuration))
-
-      Phobos.logger.info { Hash(message: 'PhobosPrometheus configured', env: ENV['RACK_ENV']) }
-    end
-
     private
 
-    def fetch_settings(configuration)
-      YAML.safe_load(ERB.new(File.read(File.expand_path(configuration))).result)
+    def subscribe_counters
+      @config.counters.each do |counter|
+        @metrics << PhobosPrometheus::Collector::Counter.create(counter)
+      end
+    end
+
+    def subscribe_histograms
+      @config.histograms.each do |histogram|
+        @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
+      end
     end
   end
 end

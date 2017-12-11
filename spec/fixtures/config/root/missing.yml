@@ -1,0 +1,8 @@
+metrics_prefix: my_app
+
+buckets:
+  - name: message
+    bins:
+      - 5
+      - 10
+      - 25

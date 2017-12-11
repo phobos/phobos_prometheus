@@ -1,0 +1,3 @@
+counters:
+  - instrumentation: this_is_ok
+  - name: this_is_wrong

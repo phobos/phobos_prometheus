@@ -11,9 +11,13 @@ module PhobosPrometheus
       BUCKETS = [5, 10, 25, 50, 100, 250, 500, 750, 1500, 3000, 5000].freeze
 
       def self.create(config)
+        instrumentation = config[:instrumentation]
+        bucket_name = config[:bucket_name]
+        raise(InvalidConfigurationError, 'Histogram requires :bucket_name and :instrumentation') \
+          unless instrumentation && bucket_name
         new(
-          instrumentation: config[:instrumentation],
-          bucket_name: config[:bucket_name]
+          instrumentation: instrumentation,
+          bucket_name: bucket_name
         )
       end
 
@@ -24,7 +28,7 @@ module PhobosPrometheus
       end
 
       def fetch_bucket_size(bucket_name)
-        PhobosPrometheus.config.buckets.find { |bucket| bucket.name = bucket_name }&.bins
+        PhobosPrometheus.config.buckets.find { |bucket| bucket.name = bucket_name }.bins
       end
 
       def init_metrics(prometheus_label)

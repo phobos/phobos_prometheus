@@ -8,7 +8,10 @@ module PhobosPrometheus
       attr_reader :counter
 
       def self.create(config)
-        new(instrumentation: config[:instrumentation])
+        instrumentation = config[:instrumentation]
+        raise(InvalidConfigurationError, 'Counter requires :instrumentation') \
+          unless instrumentation
+        new(instrumentation: instrumentation)
       end
 
       def initialize(instrumentation:)

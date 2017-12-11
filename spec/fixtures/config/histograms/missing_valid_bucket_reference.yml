@@ -1,0 +1,10 @@
+histograms:
+  - instrumentation: this is not ok
+    bucket_name: baz
+
+buckets:
+  - name: bar
+    bins:
+      - 1
+      - 2
+      - 3
