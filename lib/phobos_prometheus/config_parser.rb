@@ -21,12 +21,8 @@ module PhobosPrometheus
     def validate_counter(counter)
       Helper.assert_required_key(counter, :instrumentation) || \
         Helper.fail_config(COUNTER_INSTRUMENTATION_MISSING)
-      check_invalid_keys(COUNTER_KEYS, counter) || \
+      Helper.check_invalid_keys(COUNTER_KEYS, counter) || \
         log_warn(COUNTER_INVALID_KEY)
-    end
-
-    def check_invalid_keys(keys, metric)
-      metric.keys.all? { |key| keys.include?(key.to_sym) }
     end
   end
 
@@ -56,16 +52,12 @@ module PhobosPrometheus
       Helper.assert_required_key(histogram, :bucket_name) || \
         Helper.fail_config(HISTOGRAM_BUCKET_NAME_MISSING)
       assert_bucket_exists(histogram['bucket_name']) || Helper.fail_config(HISTOGRAM_INVALID_BUCKET)
-      check_invalid_keys(HISTOGRAM_KEYS, histogram) || \
+      Helper.check_invalid_keys(HISTOGRAM_KEYS, histogram) || \
         log_warn(HISTOGRAM_INVALID_KEY)
     end
 
     def assert_bucket_exists(name)
       @buckets.any? { |key| key.name == name }
-    end
-
-    def check_invalid_keys(keys, metric)
-      metric.keys.all? { |key| keys.include?(key.to_sym) }
     end
   end
 
@@ -94,12 +86,8 @@ module PhobosPrometheus
       Helper.assert_required_key(bucket, :bins) || Helper.fail_config(BUCKET_BINS_MISSING)
       Helper.assert_type(bucket, :bins, Array) || Helper.fail_config(BUCKET_BINS_NOT_ARRAY)
       Helper.assert_array_of_type(bucket, :bins, Integer) || Helper.fail_config(BUCKET_BINS_EMPTY)
-      check_invalid_keys(BUCKET_KEYS, bucket) || \
+      Helper.check_invalid_keys(BUCKET_KEYS, bucket) || \
         log_warn(BUCKET_INVALID_KEY)
-    end
-
-    def check_invalid_keys(keys, metric)
-      metric.keys.all? { |key| keys.include?(key.to_sym) }
     end
   end
 
@@ -129,6 +117,10 @@ module PhobosPrometheus
 
     def self.fail_config(message)
       raise(InvalidConfigurationError, message)
+    end
+
+    def self.check_invalid_keys(keys, metric)
+      metric.keys.all? { |key| keys.include?(key.to_sym) }
     end
   end
 
@@ -160,7 +152,8 @@ module PhobosPrometheus
 
     def validate_root
       assert_required_root_keys
-      check_invalid_keys(ROOT_KEYS, @config.to_h, ROOT_INVALID_KEY)
+      Helper.check_invalid_keys(ROOT_KEYS, @config.to_h) || \
+        log_warn(ROOT_INVALID_KEY)
     end
 
     def validate_counters
@@ -178,11 +171,6 @@ module PhobosPrometheus
     def assert_required_root_keys
       @config.counters || @config.histograms || \
         log_warn(ROOT_MISSING_COLLECTORS)
-    end
-
-    def check_invalid_keys(keys, metric, msg)
-      metric.keys.all? { |key| keys.include?(key.to_sym) } || \
-        log_warn(msg)
     end
   end
 end
