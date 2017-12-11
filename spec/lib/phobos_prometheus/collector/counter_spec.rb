@@ -31,12 +31,10 @@ RSpec.describe PhobosPrometheus::Collector::Counter, :configured do
     )
   end
 
-  def buckets
-    PhobosPrometheus::Collector::Histogram::BUCKETS.map { |value| value / 1000.0 }[0..3]
-  end
+  BUCKETS = PhobosPrometheus::Collector::Histogram::BUCKETS.map { |value| value / 1000.0 }[0..3]
 
   def emit_sample_events
-    allow(Time).to receive(:now).and_return(*[0, 0, 0, 0].zip(buckets).flatten)
+    allow(Time).to receive(:now).and_return(*[0, 0, 0, 0].zip(BUCKETS).flatten)
     emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
     emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerOne')
     2.times { emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo') }
