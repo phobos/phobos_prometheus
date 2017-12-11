@@ -8,7 +8,7 @@ module PhobosPrometheus
     COUNTER_KEYS = [:instrumentation].freeze
 
     def initialize(counters)
-      @counters = counters
+      @counters = counters || []
     end
 
     def validate
@@ -22,6 +22,44 @@ module PhobosPrometheus
         Helper.fail_config(COUNTER_INSTRUMENTATION_MISSING)
       check_invalid_keys(COUNTER_KEYS, counter) || \
         log_warn(COUNTER_INVALID_KEY)
+    end
+
+    def check_invalid_keys(keys, metric)
+      metric.keys.all? { |key| keys.include?(key.to_sym) }
+    end
+  end
+
+  class HistogramsValidator
+    include Logger
+    HISTOGRAM_INSTRUMENTATION_MISSING = 'Missing required key :instrumentation for histogram'
+    HISTOGRAM_BUCKET_NAME_MISSING = 'Missing required key :bucket_name for histogram'
+    HISTOGRAM_INVALID_BUCKET = 'Invalid bucket reference specified for histogram'
+    HISTOGRAM_INVALID_KEY = 'Invalid configuration option detected at histogram level, ignoring'
+    HISTOGRAM_KEYS = [:instrumentation, :bucket_name].freeze
+
+    def initialize(histograms, buckets)
+      @histograms = histograms || []
+      @buckets = buckets || []
+    end
+
+    def validate
+      @histograms.map do |histogram|
+        validate_histogram(histogram)
+      end
+    end
+
+    def validate_histogram(histogram)
+      Helper.assert_required_key(histogram, :instrumentation) || \
+        Helper.fail_config(HISTOGRAM_INSTRUMENTATION_MISSING)
+      Helper.assert_required_key(histogram, :bucket_name) || \
+        Helper.fail_config(HISTOGRAM_BUCKET_NAME_MISSING)
+      assert_bucket_exists(histogram['bucket_name']) || Helper.fail_config(HISTOGRAM_INVALID_BUCKET)
+      check_invalid_keys(HISTOGRAM_KEYS, histogram) || \
+        log_warn(HISTOGRAM_INVALID_KEY)
+    end
+
+    def assert_bucket_exists(name)
+      @buckets.any? { |key| key.name == name }
     end
 
     def check_invalid_keys(keys, metric)
@@ -65,17 +103,12 @@ module PhobosPrometheus
     ROOT_MISSING_COLLECTORS = 'Histograms and counters are not configured, ' \
                               'metrics will not be recorded'
     ROOT_INVALID_KEY = 'Invalid configuration option detected at root level, ignoring'
-    HISTOGRAM_INSTRUMENTATION_MISSING = 'Missing required key :instrumentation for histogram'
-    HISTOGRAM_BUCKET_NAME_MISSING = 'Missing required key :bucket_name for histogram'
-    HISTOGRAM_INVALID_BUCKET = 'Invalid bucket reference specified for histogram'
-    HISTOGRAM_INVALID_KEY = 'Invalid configuration option detected at histogram level, ignoring'
     BUCKET_NAME_MISSING = 'Missing required key :name for bucket'
     BUCKET_BINS_MISSING = 'Missing required key :bins for bucket'
     BUCKET_BINS_NOT_ARRAY = 'Bucket config bad, :bins should be an array'
     BUCKET_BINS_EMPTY = 'Bucket config bad, bins are empty'
     BUCKET_INVALID_KEY = 'Invalid configuration option detected at bucket level, ignoring'
     ROOT_KEYS = [:metrics_prefix, :counters, :histograms, :buckets].freeze
-    HISTOGRAM_KEYS = [:instrumentation, :bucket_name].freeze
     BUCKET_KEYS = [:name, :bins].freeze
 
     def initialize(path)
@@ -100,24 +133,11 @@ module PhobosPrometheus
     end
 
     def validate_counters
-      counters = @config.to_h[:counters] || []
-      CountersValidator.new(counters).validate
+      CountersValidator.new(@config.to_h[:counters]).validate
     end
 
     def validate_histograms
-      histograms = @config.to_h[:histograms] || []
-      histograms.map do |histogram|
-        validate_histogram(histogram)
-      end
-    end
-
-    def validate_histogram(histogram)
-      Helper.assert_required_key(histogram, :instrumentation) || \
-        Helper.fail_config(HISTOGRAM_INSTRUMENTATION_MISSING)
-      Helper.assert_required_key(histogram, :bucket_name) || \
-        Helper.fail_config(HISTOGRAM_BUCKET_NAME_MISSING)
-      assert_bucket_exists(histogram['bucket_name']) || Helper.fail_config(HISTOGRAM_INVALID_BUCKET)
-      check_invalid_keys(HISTOGRAM_KEYS, histogram, HISTOGRAM_INVALID_KEY)
+      HistogramsValidator.new(@config.to_h[:histograms], @config.buckets).validate
     end
 
     def validate_buckets
@@ -143,10 +163,6 @@ module PhobosPrometheus
     def check_invalid_keys(keys, metric, msg)
       metric.keys.all? { |key| keys.include?(key.to_sym) } || \
         log_warn(msg)
-    end
-
-    def assert_bucket_exists(name)
-      @config.buckets.any? { |key| key.name == name }
     end
   end
 end
