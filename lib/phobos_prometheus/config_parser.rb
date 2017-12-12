@@ -163,6 +163,7 @@ module PhobosPrometheus
       validate_config
       @config.counters = [] unless @config.counters
       @config.histograms = [] unless @config.histograms
+      @config.gauges = [] unless @config.gauges
       @config.freeze
     end
 

@@ -39,6 +39,7 @@ module PhobosPrometheus
     def subscribe
       subscribe_counters
       subscribe_histograms
+      subscribe_gauges
 
       log_info('PhobosPrometheus subscribed') unless @metrics.empty?
 
@@ -56,6 +57,12 @@ module PhobosPrometheus
     def subscribe_histograms
       @config.histograms.each do |histogram|
         @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
+      end
+    end
+
+    def subscribe_gauges
+      @config.gauges.each do |gauge|
+        @metrics << PhobosPrometheus::Collector::Gauge.create(gauge)
       end
     end
   end
