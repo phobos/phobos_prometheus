@@ -1,0 +1,3 @@
+gauges:
+  - increment: listener.start_handler
+    decrement: listener.stop_handler

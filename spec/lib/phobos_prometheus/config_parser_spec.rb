@@ -45,6 +45,13 @@ RSpec.describe PhobosPrometheus::ConfigParser do
                                             bins: [100, 250, 500, 750, 1000, 2500,
                                                    5000, 10_000, 15_000])])
       end
+
+      it 'parses gauges' do
+        expect(config.gauges)
+          .to match([Phobos::DeepStruct.new(label: 'number_of_handlers',
+                                            decrement: 'listener.stop_handler',
+                                            increment: 'listener.start_handler')])
+      end
     end
 
     context 'with invalid config', :with_logger, :clear_config do
@@ -172,6 +179,42 @@ RSpec.describe PhobosPrometheus::ConfigParser do
           PhobosPrometheus.configure('spec/fixtures/config/buckets/invalid_keys.yml')
           expect { PhobosPrometheus.subscribe }.to_not raise_error
           expect(PhobosPrometheus.metrics).to match([PhobosPrometheus::Collector::Histogram])
+        end
+      end
+
+      describe 'for gauges' do
+        it 'raises error when missing label' do
+          expect do
+            PhobosPrometheus.configure('spec/fixtures/config/gauges/missing_label.yml')
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::GaugesValidator::GAUGE_LABEL_MISSING
+          )
+        end
+
+        it 'raises error when missing increment' do
+          expect do
+            PhobosPrometheus.configure('spec/fixtures/config/gauges/missing_increment.yml')
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::GaugesValidator::GAUGE_INCREMENT_MISSING
+          )
+        end
+
+        it 'raises error when missing decrement' do
+          expect do
+            PhobosPrometheus.configure('spec/fixtures/config/gauges/missing_decrement.yml')
+          end.to raise_error(
+            PhobosPrometheus::InvalidConfigurationError,
+            PhobosPrometheus::GaugesValidator::GAUGE_DECREMENT_MISSING
+          )
+        end
+
+        it 'logs warning about having invalid keys' do
+          expect_log(:warn, PhobosPrometheus::GaugesValidator::GAUGE_INVALID_KEY)
+          PhobosPrometheus.configure('spec/fixtures/config/gauges/invalid_keys.yml')
+          expect { PhobosPrometheus.subscribe }.to_not raise_error
+          expect(PhobosPrometheus.metrics).to match([PhobosPrometheus::Collector::Gauge])
         end
       end
     end

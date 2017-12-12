@@ -89,6 +89,34 @@ module PhobosPrometheus
     end
   end
 
+  # Validate gauges
+  class GaugesValidator
+    include Logger
+    GAUGE_LABEL_MISSING = 'Missing required key :label for gauge'
+    GAUGE_INCREMENT_MISSING = 'Missing required key :increment for gauge'
+    GAUGE_DECREMENT_MISSING = 'Missing required key :decrement for gauge'
+    GAUGE_INVALID_KEY = 'Invalid configuration option detected at gauge level, ignoring'
+    GAUGE_KEYS = [:name, :increment, :decrement].freeze
+
+    def initialize(gauges)
+      @gauges = gauges
+    end
+
+    def validate
+      @gauges.map do |gauge|
+        validate_gauge(gauge)
+      end
+    end
+
+    def validate_gauge(gauge)
+      Helper.assert_required_key(gauge, :label) || Helper.fail_config(GAUGE_LABEL_MISSING)
+      Helper.assert_required_key(gauge, :increment) || Helper.fail_config(GAUGE_INCREMENT_MISSING)
+      Helper.assert_required_key(gauge, :decrement) || Helper.fail_config(GAUGE_DECREMENT_MISSING)
+      Helper.check_invalid_keys(GAUGE_KEYS, gauge) || \
+        log_warn(GAUGE_INVALID_KEY)
+    end
+  end
+
   # Helper for operations not dependent on instance state
   module Helper
     def self.read_config(path)
@@ -125,10 +153,10 @@ module PhobosPrometheus
     include Logger
     attr_reader :config
 
-    ROOT_MISSING_COLLECTORS = 'Histograms and counters are not configured, ' \
-                              'metrics will not be recorded'
+    ROOT_MISSING_COLLECTORS = 'No histograms, gauges nor counters are configured. ' \
+                              'Metrics will not be recorded'
     ROOT_INVALID_KEY = 'Invalid configuration option detected at root level, ignoring'
-    ROOT_KEYS = [:metrics_prefix, :counters, :histograms, :buckets].freeze
+    ROOT_KEYS = [:metrics_prefix, :counters, :histograms, :buckets, :gauges].freeze
 
     def initialize(path)
       @config = Helper.read_config(path)
@@ -143,7 +171,7 @@ module PhobosPrometheus
       validate_counters
       validate_histograms
       validate_buckets
-      config
+      validate_gauges
     end
 
     def validate_root
@@ -164,8 +192,12 @@ module PhobosPrometheus
       BucketsValidator.new(@config.to_h[:buckets] || []).validate
     end
 
+    def validate_gauges
+      GaugesValidator.new(@config.to_h[:gauges] || []).validate
+    end
+
     def assert_required_root_keys
-      @config.counters || @config.histograms || \
+      @config.counters || @config.histograms || @config.gauges || \
         log_warn(ROOT_MISSING_COLLECTORS)
     end
   end
