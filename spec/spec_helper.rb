@@ -5,6 +5,7 @@ SimpleCov.start
 
 require 'bundler/setup'
 require 'phobos_prometheus'
+require './spec/support/collector_context.rb'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -12,6 +13,14 @@ RSpec.configure do |config|
 
   # Disable RSpec exposing methods globally on `Module` and `main`
   config.disable_monkey_patching!
+
+  # This config option will be enabled by default on RSpec 4,
+  # but for reasons of backwards compatibility, you have to
+  # set it on RSpec 3.
+  #
+  # It causes the host group and examples to inherit metadata
+  # from the shared context.
+  config.shared_context_metadata_behavior = :apply_to_host_groups
 
   config.expect_with :rspec do |c|
     c.syntax = :expect
