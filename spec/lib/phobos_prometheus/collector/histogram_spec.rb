@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 RSpec.describe PhobosPrometheus::Collector::Histogram, :configured do
-  include Phobos::Instrumentation
   include_context 'for counter and histogram', include_shared: true
 
   let(:instrumentation) { 'listener.process_batch' }

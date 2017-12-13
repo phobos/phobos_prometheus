@@ -1,4 +1,8 @@
+# frozen_string_literal: true
+
 RSpec.shared_context 'for counter and histogram', shared_context: :metadata do
+  include Phobos::Instrumentation
+
   let(:registry) do
     Prometheus::Client::Registry.new
   end

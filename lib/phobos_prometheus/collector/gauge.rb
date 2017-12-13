@@ -23,7 +23,7 @@ module PhobosPrometheus
         @decrement = decrement
         @label = label
         @gauge = @registry.gauge(
-          :"#{@metrics_prefix}_#{label}_total", "The total count of #{@label}"
+          :"#{@metrics_prefix}_#{label}", "The current count of #{@label}"
         )
 
         subscribe_metrics
@@ -42,7 +42,14 @@ module PhobosPrometheus
       # rubocop:disable Lint/RescueWithoutErrorClass
       def safely_update_metrics(event, operation)
         event_label = EVENT_LABEL_BUILDER.call(event)
-        @gauge.public_send(operation, event_label)
+        # .increment and .decrement is not released yet
+        # @gauge.public_send(operation, event_label)
+        current = @gauge.get(event_label) || 0
+        if operation == :increment
+          @gauge.set(event_label, current + 1)
+        else
+          @gauge.set(event_label, current - 1)
+        end
       rescue => error
         ErrorLogger.new(error, event, @label).log
       end
