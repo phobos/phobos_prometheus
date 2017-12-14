@@ -11,6 +11,11 @@ histograms:
   - instrumentation: listener.process_batch
     bucket_name: batch
 
+gauges:
+  - label: number_of_handlers
+    increment: listener.start_handler
+    decrement: listener.stop_handler
+
 buckets:
   - name: message
     bins:

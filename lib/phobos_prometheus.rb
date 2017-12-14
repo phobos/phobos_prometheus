@@ -16,6 +16,7 @@ require 'phobos_prometheus/collector/helper'
 require 'phobos_prometheus/collector/error_logger'
 require 'phobos_prometheus/collector/histogram'
 require 'phobos_prometheus/collector/counter'
+require 'phobos_prometheus/collector/gauge'
 require 'phobos_prometheus/collector'
 require 'phobos_prometheus/exporter_helper'
 require 'phobos_prometheus/exporter'
@@ -38,6 +39,7 @@ module PhobosPrometheus
     def subscribe
       subscribe_counters
       subscribe_histograms
+      subscribe_gauges
 
       log_info('PhobosPrometheus subscribed') unless @metrics.empty?
 
@@ -55,6 +57,12 @@ module PhobosPrometheus
     def subscribe_histograms
       @config.histograms.each do |histogram|
         @metrics << PhobosPrometheus::Collector::Histogram.create(histogram)
+      end
+    end
+
+    def subscribe_gauges
+      @config.gauges.each do |gauge|
+        @metrics << PhobosPrometheus::Collector::Gauge.create(gauge)
       end
     end
   end

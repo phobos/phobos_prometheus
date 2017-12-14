@@ -1,50 +1,17 @@
 # frozen_string_literal: true
 
 RSpec.describe PhobosPrometheus::Collector::Counter, :configured do
-  include Phobos::Instrumentation
+  include_context 'for counter and histogram', include_shared: true
 
   let(:instrumentation) { 'listener.process_message' }
-  let(:subject) do
+  let!(:subject) do
     described_class.create(
       instrumentation: instrumentation
     )
   end
 
-  let(:registry) do
-    Prometheus::Client::Registry.new
-  end
-
-  let(:process_message_metadata) do
-    {
-      id: 'id',
-      key: 'key',
-      partition: 'partition',
-      offset: 'offset',
-      retry_count: 0
-    }
-  end
-
-  def emit_event(group_id:, topic:, handler:)
-    instrument(
-      instrumentation,
-      process_message_metadata.merge(group_id: group_id, topic: topic, handler: handler)
-    )
-  end
-
-  BUCKETS = PhobosPrometheus::Collector::Histogram::BUCKETS.map { |value| value / 1000.0 }[0..3]
-
-  def emit_sample_events
-    allow(Time).to receive(:now).and_return(*[0, 0, 0, 0].zip(BUCKETS).flatten)
-    emit_event(group_id: 'group_1', topic: 'topic_1', handler: 'AppHandlerOne')
-    emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerOne')
-    2.times { emit_event(group_id: 'group_2', topic: 'topic_2', handler: 'AppHandlerTwo') }
-  end
-
   describe 'consumer events' do
     before :each do
-      allow(Prometheus::Client).to receive(:registry).and_return(registry)
-      subject
-
       emit_sample_events
     end
 

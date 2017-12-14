@@ -1,0 +1,3 @@
+gauges:
+  - label: number_of_handlers
+    decrement: listener.stop_handler

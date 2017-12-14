@@ -69,8 +69,7 @@ counters:
 ### Histograms
 
 The `histograms` section provides a list of instrumentation labels that you want to create
-histograms for. Histograms are a bit more complex as they require bin sizes, these can be named and
-referenced via `bucket_name`
+histograms for. Histograms are a bit more complex as they require bin sizes, these can be named and referenced via `bucket_name`
 
 For example, in order to count the duration of processed events:
 
@@ -97,6 +96,19 @@ buckets:
       - 10
       - 25
       # - ...
+```
+
+### Gauges
+
+The `gauges` section provides a list of bi-directional gauges. The provided `label` will be used as the prometheus label, and a counter with this label will be incremented on any event matching the instrumentation label given in `increment` and decremented by events matching `decrement`.
+
+In order to count the number of active handlers, one could do this:
+
+```yml
+gauges:
+  - label: number_of_handlers
+    increment: listener.start_handler
+    decrement: listener.stop_handler
 ```
 
 ## Development
