@@ -7,10 +7,14 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## UNRELEASED
 
+### Added
+
+* Validate configuration
+* Support for gauge
+
 ### Changed
 
 * Revamp configuration options #4
-* Validate configuration
 
 ## [0.2.0]
 
