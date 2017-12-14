@@ -7,19 +7,25 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## UNRELEASED
 
+## [0.3.0] - 2017-12-14
+
 ### Added
 
-* Validate configuration
-* Support for gauge
+* Perform validation of configuration before booting
+* Add support for gauges (to track e.g. total number of started listeners)
 
 ### Changed
 
-* Revamp configuration options #4
+* Configuration is now driven by config file, instead of internal constants #4
 
-## [0.2.0]
+## [0.2.0] - 2017-12-04
 
-* Smaller refactorization
+### Changed
 
-## [0.1.0]
+* Small internal refactorization
+
+## [0.1.0] - 2017-12-04
+
+### Added
 
 * Initial release
