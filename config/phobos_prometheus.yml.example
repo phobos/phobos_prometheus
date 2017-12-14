@@ -3,7 +3,6 @@ metrics_prefix: phobos_app
 counters:
   - instrumentation: listener.process_message
   - instrumentation: listener.process_batch
-  - instrumentation: foo.counter_only
 
 histograms:
   - instrumentation: listener.process_message
@@ -19,23 +18,29 @@ gauges:
 buckets:
   - name: message
     bins:
-      - 5
-      - 10
-      - 25
-      - 50
-      - 100
-      - 250
-      - 500
-      - 1000
-      - 2500
+      - 2
+      - 4
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+      - 512
+      - 1024
+      - 2048
+      - 4096
   - name: batch
     bins:
-      - 50
-      - 100
-      - 250
-      - 500
-      - 1000
-      - 2500
-      - 5000
-      - 10000
-      - 15000
+      - 64
+      - 128
+      - 256
+      - 512
+      - 1024
+      - 2048
+      - 4096
+      - 8192
+      - 16384
+      - 32768
+      - 65536
+      - 131072
