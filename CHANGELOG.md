@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## UNRELEASED
 
+### Changed
+
+* Bugfix: Histogram did not get bin sizes as per config
+* Bugfix: Gauge incorrectly reported warnings for config following specification
+
 ## [0.3.0] - 2017-12-14
 
 ### Added
