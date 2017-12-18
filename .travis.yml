@@ -1,6 +1,7 @@
 sudo: false
 language: ruby
 rvm:
+  - 2.3.6
   - 2.4.1
 
 env:
