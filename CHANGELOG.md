@@ -7,6 +7,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## UNRELEASED
 
+## [0.3.1] - 2017-12-18
+
 ### Changed
 
 * Bugfix: Histogram did not get bin sizes as per config
