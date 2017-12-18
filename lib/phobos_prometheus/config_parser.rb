@@ -96,7 +96,7 @@ module PhobosPrometheus
     GAUGE_INCREMENT_MISSING = 'Missing required key :increment for gauge'
     GAUGE_DECREMENT_MISSING = 'Missing required key :decrement for gauge'
     GAUGE_INVALID_KEY = 'Invalid configuration option detected at gauge level, ignoring'
-    GAUGE_KEYS = [:name, :increment, :decrement].freeze
+    GAUGE_KEYS = [:label, :increment, :decrement].freeze
 
     def initialize(gauges)
       @gauges = gauges

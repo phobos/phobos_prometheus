@@ -28,7 +28,7 @@ module PhobosPrometheus
       end
 
       def fetch_bucket_size(bucket_name)
-        PhobosPrometheus.config.buckets.find { |bucket| bucket.name = bucket_name }.bins
+        PhobosPrometheus.config.buckets.find { |bucket| bucket.name == bucket_name }.bins
       end
 
       def init_metrics(prometheus_label)

@@ -8,6 +8,14 @@ RSpec.describe PhobosPrometheus do
   end
 
   describe '.subscribe', :configured do
+    let(:registry) do
+      Prometheus::Client::Registry.new
+    end
+
+    before :each do
+      allow(Prometheus::Client).to receive(:registry).and_return(registry)
+    end
+
     it 'creates a collector object as per configuration' do
       expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
@@ -41,9 +49,31 @@ RSpec.describe PhobosPrometheus do
 
       PhobosPrometheus.subscribe
     end
+
+    it 'configures buckets correctly' do
+      PhobosPrometheus.subscribe
+
+      histograms = PhobosPrometheus
+                   .metrics
+                   .grep(PhobosPrometheus::Collector::Histogram)
+                   .map(&:histogram)
+
+      message_histogram = histograms.find do |histogram|
+        histogram.name == :phobos_app_listener_process_message_duration
+      end
+
+      batch_histogram = histograms.find do |histogram|
+        histogram.name == :phobos_app_listener_process_batch_duration
+      end
+
+      expect(message_histogram.instance_variable_get(:@buckets))
+        .to eq(PhobosPrometheus.config.buckets[0].bins)
+      expect(batch_histogram.instance_variable_get(:@buckets))
+        .to eq(PhobosPrometheus.config.buckets[1].bins)
+    end
   end
 
-  describe '.configure' do
+  describe '.configure', :with_logger do
     it 'creates the configuration obj' do
       PhobosPrometheus.configure(config_path)
       expect(PhobosPrometheus.config).to_not be_nil
