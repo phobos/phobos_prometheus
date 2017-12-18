@@ -8,6 +8,14 @@ RSpec.describe PhobosPrometheus do
   end
 
   describe '.subscribe', :configured do
+    let(:registry) do
+      Prometheus::Client::Registry.new
+    end
+
+    before :each do
+      allow(Prometheus::Client).to receive(:registry).and_return(registry)
+    end
+
     it 'creates a collector object as per configuration' do
       expect(PhobosPrometheus::Collector::Counter)
         .to receive(:create)
@@ -44,6 +52,7 @@ RSpec.describe PhobosPrometheus do
 
     it 'configures buckets correctly' do
       PhobosPrometheus.subscribe
+
       histograms = PhobosPrometheus
                    .metrics
                    .grep(PhobosPrometheus::Collector::Histogram)
