@@ -136,7 +136,7 @@ module PhobosPrometheus
     def self.assert_array_of_type(metric, key, type)
       ary = metric[key.to_s]
       ary.is_a?(Array) && \
-        ary.all? { |value| value.class == type }
+        ary.all? { |value| value.is_a? type }
     end
 
     def self.fail_config(message)
