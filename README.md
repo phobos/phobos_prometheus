@@ -9,8 +9,7 @@ A bundled Prometheus collector and exporter of Phobos metrics.
 
 Exporter is a simple Sinatra app which can be mounted in eg a Rack App.
 
-Collector initializes Prometheus metrics and sets up a subscribtion to certain Phobos events to keep
-monitor of your metrics
+Collector initializes Prometheus metrics and sets up a subscribtion to certain Phobos events to keep monitor of your metrics
 
 ## Installation
 

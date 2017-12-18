@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## UNRELEASED
 
+## [0.3.2] - 2017-12-18
+
+### Changed
+
+* Make sure we support Ruby 2.3
+
 ## [0.3.1] - 2017-12-18
 
 ### Changed
