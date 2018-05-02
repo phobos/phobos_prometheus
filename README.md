@@ -3,6 +3,8 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/c6dfe9affb0e7cc5a682/test_coverage)](https://codeclimate.com/github/phobos/phobos_prometheus/test_coverage)
 [![Chat with us on Discord](https://discordapp.com/api/guilds/379938130326847488/widget.png)](https://discord.gg/rfMUBVD)
 
+![Grafana Splash Image](images/grafana_splash.jpg)
+
 # Phobos Prometheus
 
 A bundled Prometheus collector and exporter of Phobos metrics.
@@ -108,6 +110,33 @@ gauges:
   - label: number_of_handlers
     increment: listener.start_handler
     decrement: listener.stop_handler
+```
+
+## Dashboard
+
+This section provides some inspiration to get your Grafana dashboards up and running.
+
+The expressions are recommended to be added as Prometheus rules, providing views that grafana can use. But you can use the expressions directly in Grafana as well.
+
+Total processed messages per 1min:
+
+```
+record: <<your app name here>>_process_message_total:per_min
+expr: (sum by(job, handler, group_id) (increase(<<your app name here>>_listener_process_message_total[1m])))
+```
+
+Total processed batches per 1min:
+
+```
+record: account:overview_consumer_process_batch_total:per_min
+expr: (sum by(job, handler, group_id) (increase(<<your app name here>>_listener_process_batch_total[1m])))
+```
+
+99th percentile of process message duration:
+
+```
+record: account:overview_consumer_process_message_duration:p99
+expr: (histogram_quantile(0.99, sum by(job, handler, group_id, le) (increase(<<your app name here>>_listener_process_message_duration_bucket[5m]))))
 ```
 
 ## Development
