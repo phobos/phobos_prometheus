@@ -112,6 +112,33 @@ gauges:
     decrement: listener.stop_handler
 ```
 
+## Dashboard
+
+This section provides some inspiration to get your Grafana dashboards up and running.
+
+The expressions are recommended to be added as Prometheus rules, providing views that grafana can use. But you can use the expressions directly in Grafana as well.
+
+Total processed messages per 1min:
+
+```
+record: <<your app name here>>_process_message_total:per_min
+expr: (sum by(job, handler, group_id) (increase(<<your app name here>>_listener_process_message_total[1m])))
+```
+
+Total processed batches per 1min:
+
+```
+record: account:overview_consumer_process_batch_total:per_min
+expr: (sum by(job, handler, group_id) (increase(<<your app name here>>_listener_process_batch_total[1m])))
+```
+
+99th percentile of process message duration:
+
+```
+record: account:overview_consumer_process_message_duration:p99
+expr: (histogram_quantile(0.99, sum by(job, handler, group_id, le) (increase(<<your app name here>>_listener_process_message_duration_bucket[5m]))))
+```
+
 ## Development
 
 After checking out the repo, run `bundle install` to install dependencies. Then, run `rake spec` to
