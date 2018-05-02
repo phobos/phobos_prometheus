@@ -3,6 +3,8 @@
 [![Test Coverage](https://api.codeclimate.com/v1/badges/c6dfe9affb0e7cc5a682/test_coverage)](https://codeclimate.com/github/phobos/phobos_prometheus/test_coverage)
 [![Chat with us on Discord](https://discordapp.com/api/guilds/379938130326847488/widget.png)](https://discord.gg/rfMUBVD)
 
+![Grafana Splash Image](images/grafana_splash.jpg)
+
 # Phobos Prometheus
 
 A bundled Prometheus collector and exporter of Phobos metrics.
