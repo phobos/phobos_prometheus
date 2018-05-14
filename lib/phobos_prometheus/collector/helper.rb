@@ -22,14 +22,12 @@ module PhobosPrometheus
         end
       end
 
-      # rubocop:disable Lint/RescueWithoutErrorClass
       def safely_update_metrics(event)
         event_label = EVENT_LABEL_BUILDER.call(event)
         update_metrics(event_label, event)
-      rescue => error
+      rescue StandardError => error
         ErrorLogger.new(error, event, @instrumentation).log
       end
-      # rubocop:enable Lint/RescueWithoutErrorClass
     end
   end
 end

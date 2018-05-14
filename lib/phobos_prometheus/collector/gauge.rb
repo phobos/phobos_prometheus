@@ -39,7 +39,6 @@ module PhobosPrometheus
         end
       end
 
-      # rubocop:disable Lint/RescueWithoutErrorClass
       def safely_update_metrics(event, operation)
         event_label = EVENT_LABEL_BUILDER.call(event)
         # .increment and .decrement is not released yet
@@ -50,10 +49,9 @@ module PhobosPrometheus
         else
           @gauge.set(event_label, current - 1)
         end
-      rescue => error
+      rescue StandardError => error
         ErrorLogger.new(error, event, @label).log
       end
-      # rubocop:enable Lint/RescueWithoutErrorClass
     end
   end
 end
