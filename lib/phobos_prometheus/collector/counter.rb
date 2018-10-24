@@ -11,6 +11,7 @@ module PhobosPrometheus
         instrumentation = config[:instrumentation]
         raise(InvalidConfigurationError, 'Counter requires :instrumentation') \
           unless instrumentation
+
         new(instrumentation: instrumentation)
       end
 

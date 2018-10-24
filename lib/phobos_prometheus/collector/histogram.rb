@@ -15,6 +15,7 @@ module PhobosPrometheus
         bucket_name = config[:bucket_name]
         raise(InvalidConfigurationError, 'Histogram requires :bucket_name and :instrumentation') \
           unless instrumentation && bucket_name
+
         new(
           instrumentation: instrumentation,
           bucket_name: bucket_name

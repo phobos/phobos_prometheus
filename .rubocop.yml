@@ -10,6 +10,7 @@
 # Inherit default rules first, and then override those rules with
 # our violation whitelist.
 inherit_from:
+  - .rubocop_todo.yml
   - .rubocop_common.yml
 
 ##############
