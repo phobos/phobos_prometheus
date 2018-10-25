@@ -13,6 +13,7 @@ module PhobosPrometheus
 
         raise(InvalidConfigurationError, 'Gauge requires :label, :increment and :decrement') \
           unless label && increment && decrement
+
         new(label: label, increment: increment, decrement: decrement)
       end
 
